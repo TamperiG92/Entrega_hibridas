@@ -1,0 +1,7 @@
+{
+  "name": "velvet-blade",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
