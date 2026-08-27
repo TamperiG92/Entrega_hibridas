@@ -1,0 +1,55 @@
+<ion-content [fullscreen]="true" class="register-content">
+
+  <div class="brand-header">
+    <p class="eyebrow">Únete al estudio</p>
+    <h1 class="brand-title">Crear cuenta</h1>
+    <p class="brand-sub">Cliente o especialista, tú eliges</p>
+  </div>
+
+  <div class="form-wrap">
+
+    <ion-segment [value]="userType" (ionChange)="onSegmentChange($event)" class="type-segment">
+      <ion-segment-button value="cliente">
+        <ion-label>Cliente</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="especialista">
+        <ion-label>Especialista</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <ion-item class="field-item" lines="none">
+      <ion-label position="stacked">Nombre completo</ion-label>
+      <ion-input placeholder="Ej. Diego Cala" [(ngModel)]="fullName" name="fullName"></ion-input>
+    </ion-item>
+
+    <ion-item class="field-item" lines="none">
+      <ion-label position="stacked">Teléfono</ion-label>
+      <ion-input type="tel" placeholder="+57 300 000 0000" [(ngModel)]="phone" name="phone"></ion-input>
+    </ion-item>
+
+    <ion-item class="field-item" lines="none">
+      <ion-label position="stacked">Correo</ion-label>
+      <ion-input type="email" placeholder="tucorreo@ejemplo.com" [(ngModel)]="email" name="email"></ion-input>
+    </ion-item>
+
+    <ion-item class="field-item" lines="none">
+      <ion-label position="stacked">Contraseña</ion-label>
+      <ion-input type="password" placeholder="Mínimo 8 caracteres" [(ngModel)]="password" name="password"></ion-input>
+    </ion-item>
+
+    <ion-item class="terms-item" lines="none">
+      <ion-checkbox [(ngModel)]="acceptedTerms" name="terms" slot="start"></ion-checkbox>
+      <ion-label class="terms-label">Acepto los términos y condiciones y el tratamiento de mis datos personales.</ion-label>
+    </ion-item>
+
+    <ion-text color="primary" *ngIf="errorMessage">
+      <p class="error-msg">⚠ {{ errorMessage }}</p>
+    </ion-text>
+
+    <ion-button expand="block" color="primary" (click)="onRegister()">
+      Crear cuenta
+    </ion-button>
+
+  </div>
+
+</ion-content>
