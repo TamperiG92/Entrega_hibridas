@@ -9,7 +9,10 @@ module.exports = tseslint.config(
     extends: [...angular.configs.tsRecommended],
     processor: angular.processInlineTemplates,
     rules: {
+<<<<<<< HEAD
       "@angular-eslint/prefer-standalone": "off",
+=======
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
       "@angular-eslint/component-class-suffix": [
         "error",
         { suffixes: ["Page", "Component"] },

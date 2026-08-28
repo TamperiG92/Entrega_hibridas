@@ -10,7 +10,11 @@
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
+<<<<<<< HEAD
     "src/test-setup.ts",
     "src/**/*.module.ts"
+=======
+    "src/test-setup.ts"
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
   ]
 }

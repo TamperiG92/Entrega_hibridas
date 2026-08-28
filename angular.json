@@ -5,7 +5,16 @@
   "projects": {
     "app": {
       "projectType": "application",
+<<<<<<< HEAD
       "schematics": {},
+=======
+      "schematics": {
+        "@ionic/angular-toolkit:page": {
+          "styleext": "scss",
+          "standalone": true
+        }
+      },
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -18,7 +27,10 @@
               "browser": ""
             },
             "index": "src/index.html",
+<<<<<<< HEAD
             "browser": "src/main.ts",
+=======
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -27,6 +39,7 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+<<<<<<< HEAD
               },
               {
                 "glob": "**/*.svg",
@@ -36,6 +49,13 @@
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": []
+=======
+              }
+            ],
+            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "scripts": [],
+            "browser": "src/main.ts"
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
           },
           "configurations": {
             "production": {
@@ -108,10 +128,14 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
+<<<<<<< HEAD
             "lintFilePatterns": [
               "src/**/*.ts",
               "src/**/*.html"
             ]
+=======
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
           }
         }
       }
@@ -120,16 +144,35 @@
   "cli": {
     "schematicCollections": [
       "@ionic/angular-toolkit"
+<<<<<<< HEAD
     ]
+=======
+    ],
+    "analytics": false
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {
       "styleext": "scss",
+<<<<<<< HEAD
       "standalone": false
     },
     "@ionic/angular-toolkit:page": {
       "styleext": "scss",
       "standalone": false
+=======
+      "standalone": true
+    },
+    "@ionic/angular-toolkit:page": {
+      "styleext": "scss",
+      "standalone": true
+    },
+    "@angular-eslint/schematics:application": {
+      "setParserOptionsProject": true
+    },
+    "@angular-eslint/schematics:library": {
+      "setParserOptionsProject": true
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
     }
   }
 }

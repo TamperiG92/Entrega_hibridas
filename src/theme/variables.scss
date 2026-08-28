@@ -1,2 +1,61 @@
+<<<<<<< HEAD
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+=======
+/* Velvet & Blade — paleta */
+:root {
+    :root {
+  color-scheme: light only;
+}
+  /** primary — blade crimson (CTAs, botones principales) **/
+  --ion-color-primary: #D62839;
+  --ion-color-primary-rgb: 214, 40, 57;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #bc2332;
+  --ion-color-primary-tint: #da3d4c;
+
+  /** secondary — wine (acentos, labels, tags) **/
+  --ion-color-secondary: #7A2E4A;
+  --ion-color-secondary-rgb: 122, 46, 74;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #6b2841;
+  --ion-color-secondary-tint: #88435c;
+
+  /** tertiary — velvet oscuro (headers, toolbars) **/
+  --ion-color-tertiary: #241221;
+  --ion-color-tertiary-rgb: 36, 18, 33;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #20101d;
+  --ion-color-tertiary-tint: #3a2b38;
+
+  /** light — porcelain (fondo general) **/
+  --ion-color-light: #FBF6F4;
+  --ion-color-light-rgb: 251, 246, 244;
+  --ion-color-light-contrast: #2B1B26;
+  --ion-color-light-contrast-rgb: 43, 27, 38;
+  --ion-color-light-shade: #dddad8;
+  --ion-color-light-tint: #fcf7f6;
+
+  /** medium — texto secundario / muted **/
+  --ion-color-medium: #8C7A85;
+  --ion-color-medium-rgb: 140, 122, 133;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #7b6b75;
+  --ion-color-medium-tint: #988792;
+
+  /** dark — tinta (texto principal) **/
+  --ion-color-dark: #2B1B26;
+  --ion-color-dark-rgb: 43, 27, 38;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #261821;
+  --ion-color-dark-tint: #40323b;
+
+  --ion-background-color: #FBF6F4;
+  --ion-text-color: #2B1B26;
+}
+>>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0

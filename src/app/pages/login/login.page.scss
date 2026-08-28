@@ -1,0 +1,64 @@
+.login-content {
+  --background: var(--ion-color-light);
+}
+
+.brand-header {
+  background: linear-gradient(135deg, var(--ion-color-tertiary) 0%, #34172e 100%);
+  padding: 32px 24px 40px;
+  color: white;
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ion-color-primary-tint);
+    margin: 0;
+  }
+
+  .brand-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 6px 0 2px;
+  }
+
+  .brand-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    margin: 0;
+  }
+}
+
+.form-wrap {
+  padding: 28px 22px 40px;
+}
+
+.field-item {
+  --background: white;
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --color: #2B1B26;              
+  --placeholder-color: #8C7A85;  // ← agregar: color del placeholder ("tucorreo@...")
+  margin-bottom: 14px;
+  border: 1.5px solid #EADFE0;
+  border-radius: 12px;
+}
+
+.error-msg {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: -6px 0 14px;
+}
+
+.link-row {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
