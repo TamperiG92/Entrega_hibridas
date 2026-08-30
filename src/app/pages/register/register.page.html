@@ -1,55 +1,211 @@
-<ion-content [fullscreen]="true" class="register-content">
+<ion-content [fullscreen]="true" class="register-page-content">
+  <div class="register-wrapper">
 
-  <div class="brand-header">
-    <p class="eyebrow">Únete al estudio</p>
-    <h1 class="brand-title">Crear cuenta</h1>
-    <p class="brand-sub">Cliente o especialista, tú eliges</p>
+    <div class="register-card">
+
+      <div class="brand-hero-panel">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="brand-badge">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>Membresía &amp; Registro</span>
+          </div>
+
+          <div class="logo-box">
+            <span class="logo-letters">V&amp;B</span>
+          </div>
+
+          <h1 class="hero-title">Únete a la Experiencia</h1>
+          <p class="hero-subtitle">Forma parte de la comunidad exclusiva de Velvet &amp; Blade</p>
+
+          <div class="benefits-grid">
+            <div class="benefit-item">
+              <div class="benefit-icon">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              </div>
+              <div class="benefit-text">
+                <strong>Reserva Ágil de Estaciones</strong>
+                <span>Elige tu sillón de barbería o mesa de spa preferida.</span>
+              </div>
+            </div>
+
+            <div class="benefit-item">
+              <div class="benefit-icon">
+                <ion-icon name="star-outline"></ion-icon>
+              </div>
+              <div class="benefit-text">
+                <strong>Especialistas Certificados</strong>
+                <span>Atención personalizada con profesionales calificados.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="trust-footer">
+            <span>Privacidad y seguridad garantizada en cada cita</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+
+        <div class="mobile-brand-header">
+          <div class="mobile-logo-circle">V&amp;B</div>
+          <div>
+            <span class="mobile-eyebrow">Crear Nueva Cuenta</span>
+            <h2 class="mobile-brand-name">Velvet &amp; Blade</h2>
+          </div>
+        </div>
+
+        <div class="form-header">
+          <h2 class="form-title">Registro de Usuario</h2>
+          <p class="form-desc">Selecciona tu perfil y completa tus datos para empezar</p>
+        </div>
+
+        <div class="role-selector-container">
+          <label class="section-label">Tipo de Perfil</label>
+          <div class="role-cards-grid">
+            <button
+              type="button"
+              class="role-card"
+              [class.selected]="userType === 'cliente'"
+              (click)="selectUserType('cliente')">
+              <div class="role-radio-dot"></div>
+              <div class="role-icon-box">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+              <div class="role-info">
+                <strong class="role-name">Cliente</strong>
+                <span class="role-desc">Agendar citas y servicios</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="role-card"
+              [class.selected]="userType === 'especialista'"
+              (click)="selectUserType('especialista')">
+              <div class="role-radio-dot"></div>
+              <div class="role-icon-box">
+                <ion-icon name="cut-outline"></ion-icon>
+              </div>
+              <div class="role-info">
+                <strong class="role-name">Especialista</strong>
+                <span class="role-desc">Gestionar turnos y estación</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <form (ngSubmit)="onRegister()" class="auth-form">
+
+          <div class="input-group">
+            <label class="input-label" for="reg-fullname">Nombre Completo</label>
+            <div class="input-field-wrap">
+              <ion-icon name="person-outline" class="field-icon"></ion-icon>
+              <input
+                id="reg-fullname"
+                type="text"
+                class="custom-input"
+                placeholder="Ej. Juan Manuel Castro"
+                [(ngModel)]="fullName"
+                name="fullName"
+                autocomplete="name"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="reg-phone">Número de Teléfono</label>
+            <div class="input-field-wrap">
+              <ion-icon name="call-outline" class="field-icon"></ion-icon>
+              <input
+                id="reg-phone"
+                type="tel"
+                class="custom-input"
+                placeholder="+57 300 123 4567"
+                [(ngModel)]="phone"
+                name="phone"
+                autocomplete="tel"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="reg-email">Correo Electrónico</label>
+            <div class="input-field-wrap">
+              <ion-icon name="mail-outline" class="field-icon"></ion-icon>
+              <input
+                id="reg-email"
+                type="email"
+                class="custom-input"
+                placeholder="tunombre@ejemplo.com"
+                [(ngModel)]="email"
+                name="email"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="reg-password">Contraseña</label>
+            <div class="input-field-wrap">
+              <ion-icon name="lock-closed-outline" class="field-icon"></ion-icon>
+              <input
+                id="reg-password"
+                [type]="showPassword ? 'text' : 'password'"
+                class="custom-input"
+                placeholder="Mínimo 6 caracteres"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="new-password"
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                (click)="togglePasswordVisibility()"
+                aria-label="Mostrar u ocultar contraseña">
+                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="terms-container">
+            <label class="checkbox-container">
+              <input type="checkbox" [(ngModel)]="acceptedTerms" name="acceptedTerms" (change)="triggerHaptic()">
+              <span class="checkmark"></span>
+              <span class="checkbox-text">
+                Acepto los <a class="terms-link" href="javascript:void(0)">Términos de Servicio</a> y la política de tratamiento de datos personales de Velvet &amp; Blade.
+              </span>
+            </label>
+          </div>
+
+          <div class="error-banner" *ngIf="errorMessage">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Completar Registro</span>
+            <span *ngIf="isLoading">Creando cuenta...</span>
+            <ion-icon name="arrow-forward-outline" *ngIf="!isLoading"></ion-icon>
+          </button>
+
+        </form>
+
+        <div class="login-footer">
+          <p class="login-text">
+            ¿Ya tienes una cuenta registrada?
+            <a (click)="goToLogin()" class="login-link">Iniciar Sesión</a>
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
-
-  <div class="form-wrap">
-
-    <ion-segment [value]="userType" (ionChange)="onSegmentChange($event)" class="type-segment">
-      <ion-segment-button value="cliente">
-        <ion-label>Cliente</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="especialista">
-        <ion-label>Especialista</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Nombre completo</ion-label>
-      <ion-input placeholder="Ej. Diego Cala" [(ngModel)]="fullName" name="fullName"></ion-input>
-    </ion-item>
-
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Teléfono</ion-label>
-      <ion-input type="tel" placeholder="+57 300 000 0000" [(ngModel)]="phone" name="phone"></ion-input>
-    </ion-item>
-
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Correo</ion-label>
-      <ion-input type="email" placeholder="tucorreo@ejemplo.com" [(ngModel)]="email" name="email"></ion-input>
-    </ion-item>
-
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Contraseña</ion-label>
-      <ion-input type="password" placeholder="Mínimo 8 caracteres" [(ngModel)]="password" name="password"></ion-input>
-    </ion-item>
-
-    <ion-item class="terms-item" lines="none">
-      <ion-checkbox [(ngModel)]="acceptedTerms" name="terms" slot="start"></ion-checkbox>
-      <ion-label class="terms-label">Acepto los términos y condiciones y el tratamiento de mis datos personales.</ion-label>
-    </ion-item>
-
-    <ion-text color="primary" *ngIf="errorMessage">
-      <p class="error-msg">⚠ {{ errorMessage }}</p>
-    </ion-text>
-
-    <ion-button expand="block" color="primary" (click)="onRegister()">
-      Crear cuenta
-    </ion-button>
-
-  </div>
-
-</ion-content>
+</ion-content>

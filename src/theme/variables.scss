@@ -1,56 +1,68 @@
-/* Velvet & Blade — paleta */
 :root {
-    :root {
-  color-scheme: light only;
-}
-  /** primary — blade crimson (CTAs, botones principales) **/
-  --ion-color-primary: #D62839;
-  --ion-color-primary-rgb: 214, 40, 57;
+  color-scheme: light;
+
+  --ion-color-primary: #C9184A;
+  --ion-color-primary-rgb: 201, 24, 74;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #bc2332;
-  --ion-color-primary-tint: #da3d4c;
+  --ion-color-primary-shade: #b11541;
+  --ion-color-primary-tint: #ce2f5c;
 
-  /** secondary — wine (acentos, labels, tags) **/
-  --ion-color-secondary: #7A2E4A;
-  --ion-color-secondary-rgb: 122, 46, 74;
+  --ion-color-secondary: #701A75;
+  --ion-color-secondary-rgb: 112, 26, 117;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #6b2841;
-  --ion-color-secondary-tint: #88435c;
+  --ion-color-secondary-shade: #631767;
+  --ion-color-secondary-tint: #7e3183;
 
-  /** tertiary — velvet oscuro (headers, toolbars) **/
-  --ion-color-tertiary: #241221;
-  --ion-color-tertiary-rgb: 36, 18, 33;
+  --ion-color-tertiary: #1E0F1D;
+  --ion-color-tertiary-rgb: 30, 15, 29;
   --ion-color-tertiary-contrast: #ffffff;
   --ion-color-tertiary-contrast-rgb: 255, 255, 255;
-  --ion-color-tertiary-shade: #20101d;
-  --ion-color-tertiary-tint: #3a2b38;
+  --ion-color-tertiary-shade: #1a0d1a;
+  --ion-color-tertiary-tint: #352734;
 
-  /** light — porcelain (fondo general) **/
-  --ion-color-light: #FBF6F4;
-  --ion-color-light-rgb: 251, 246, 244;
-  --ion-color-light-contrast: #2B1B26;
-  --ion-color-light-contrast-rgb: 43, 27, 38;
-  --ion-color-light-shade: #dddad8;
-  --ion-color-light-tint: #fcf7f6;
+  --vb-gold: #D4AF37;
+  --vb-gold-light: #F3E5AB;
+  --vb-gold-dark: #AA820A;
 
-  /** medium — texto secundario / muted **/
-  --ion-color-medium: #8C7A85;
-  --ion-color-medium-rgb: 140, 122, 133;
+  --ion-color-light: #FAF6F5;
+  --ion-color-light-rgb: 250, 246, 245;
+  --ion-color-light-contrast: #1E0F1D;
+  --ion-color-light-contrast-rgb: 30, 15, 29;
+  --ion-color-light-shade: #dcd8d8;
+  --ion-color-light-tint: #fbf7f6;
+
+  --ion-color-medium: #6B5B65;
+  --ion-color-medium-rgb: 107, 91, 101;
   --ion-color-medium-contrast: #ffffff;
   --ion-color-medium-contrast-rgb: 255, 255, 255;
-  --ion-color-medium-shade: #7b6b75;
-  --ion-color-medium-tint: #988792;
+  --ion-color-medium-shade: #5e5059;
+  --ion-color-medium-tint: #7a6b74;
 
-  /** dark — tinta (texto principal) **/
-  --ion-color-dark: #2B1B26;
-  --ion-color-dark-rgb: 43, 27, 38;
+  --ion-color-dark: #1E0F1D;
+  --ion-color-dark-rgb: 30, 15, 29;
   --ion-color-dark-contrast: #ffffff;
   --ion-color-dark-contrast-rgb: 255, 255, 255;
-  --ion-color-dark-shade: #261821;
-  --ion-color-dark-tint: #40323b;
+  --ion-color-dark-shade: #1a0d1a;
+  --ion-color-dark-tint: #352734;
 
-  --ion-background-color: #FBF6F4;
-  --ion-text-color: #2B1B26;
+  --ion-background-color: #FBF8F7;
+  --ion-background-color-rgb: 251, 248, 247;
+  --ion-text-color: #1E0F1D;
+  --ion-text-color-rgb: 30, 15, 29;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --vb-radius-sm: 8px;
+  --vb-radius-md: 14px;
+  --vb-radius-lg: 22px;
+  --vb-radius-xl: 32px;
+  --vb-shadow-soft: 0 4px 20px -2px rgba(30, 15, 29, 0.06);
+  --vb-shadow-luxury: 0 12px 36px -4px rgba(30, 15, 29, 0.12), 0 4px 12px -2px rgba(201, 24, 74, 0.08);
+  --vb-gradient-hero: linear-gradient(135deg, #1E0F1D 0%, #3B1235 45%, #701A75 80%, #C9184A 100%);
+  --vb-gradient-crimson: linear-gradient(135deg, #C9184A 0%, #701A75 100%);
+  --vb-gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #AA820A 100%);
+  --vb-gradient-card: linear-gradient(180deg, #FFFFFF 0%, #FAF5F8 100%);
+  --vb-card-border: 1px solid rgba(201, 24, 74, 0.12);
 }

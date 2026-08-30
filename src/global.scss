@@ -1,50 +1,97 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
 :root {
-  --font-body: 'Manrope', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Manrope', -apple-system, sans-serif;
   --font-display: 'Fraunces', Georgia, serif;
 }
 
 body {
   font-family: var(--font-body);
+  background-color: var(--ion-background-color);
+  color: var(--ion-text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 .brand-title {
   font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.eyebrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ion-color-primary-tint);
+  background: rgba(201, 24, 74, 0.12);
+  border: 1px solid rgba(201, 24, 74, 0.25);
+  padding: 4px 12px;
+  border-radius: 9999px;
+}
+
+.vb-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: radial-gradient(circle at 10% 20%, rgba(112, 26, 117, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(201, 24, 74, 0.05) 0%, transparent 40%),
+              var(--ion-background-color);
+
+  @media (min-width: 768px) {
+    padding: 32px;
+  }
+}
+
+.vb-auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--vb-gradient-card);
+  border: var(--vb-card-border);
+  border-radius: var(--vb-radius-lg);
+  box-shadow: var(--vb-shadow-luxury);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+
+  @media (min-width: 992px) {
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(112, 26, 117, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(112, 26, 117, 0.4);
 }

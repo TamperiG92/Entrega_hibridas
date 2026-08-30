@@ -1,44 +1,139 @@
-<ion-content [fullscreen]="true" class="login-content">
+<ion-content [fullscreen]="true" class="login-page-content">
+  <div class="login-wrapper">
 
-  <div class="brand-header">
-    <p class="eyebrow">Bienvenido de nuevo</p>
-    <h1 class="brand-title">Velvet &amp; Blade</h1>
-    <p class="brand-sub">Barbería de Autor · Spa de Uñas</p>
+    <div class="login-card">
+
+      <div class="brand-hero-panel">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="brand-badge">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>Experiencia Exclusiva</span>
+          </div>
+
+          <div class="logo-box">
+            <span class="logo-letters">V&amp;B</span>
+          </div>
+
+          <h1 class="hero-title">VELVET &amp; BLADE</h1>
+          <p class="hero-subtitle">Barbería de Autor &amp; Spa de Uñas</p>
+
+          <div class="features-list">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <ion-icon name="cut-outline"></ion-icon>
+              </div>
+              <div class="feature-text">
+                <strong>Barbería de Precisión</strong>
+                <span>Cortes de autor, rituales de toalla caliente y perfilado.</span>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <div class="feature-icon">
+                <ion-icon name="color-palette-outline"></ion-icon>
+              </div>
+              <div class="feature-text">
+                <strong>Nail Lounge Premium</strong>
+                <span>Manicura rusa, pedicura spa y esmaltado de alta duración.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stations-status-pill">
+            <span class="status-dot pulse"></span>
+            <span>Estaciones de atención habilitadas en tiempo real</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+
+        <div class="mobile-brand-header">
+          <div class="mobile-logo-circle">V&amp;B</div>
+          <div>
+            <span class="mobile-eyebrow">Barber &amp; Nail Lounge</span>
+            <h2 class="mobile-brand-name">Velvet &amp; Blade</h2>
+          </div>
+        </div>
+
+        <div class="form-header">
+          <h2 class="form-title">Iniciar Sesión</h2>
+          <p class="form-desc">Ingresa a tu cuenta para gestionar tus citas y estaciones</p>
+        </div>
+
+        <div class="demo-switch-box">
+          <span class="demo-label">Acceso Rápido:</span>
+          <div class="demo-buttons">
+            <button type="button" class="demo-btn" (click)="fillDemo('cliente')">
+              <ion-icon name="person-outline"></ion-icon>
+              Cliente VIP
+            </button>
+            <button type="button" class="demo-btn" (click)="fillDemo('especialista')">
+              <ion-icon name="cut-outline"></ion-icon>
+              Especialista
+            </button>
+          </div>
+        </div>
+
+        <form (ngSubmit)="onLogin()" class="auth-form">
+
+          <div class="input-group">
+            <label class="input-label" for="login-email">Correo Electrónico</label>
+            <div class="input-field-wrap">
+              <ion-icon name="mail-outline" class="field-icon"></ion-icon>
+              <input id="login-email" type="email" class="custom-input" placeholder="ejemplo@velvetblade.com"
+                [(ngModel)]="email" name="email" autocomplete="email" required />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label class="input-label" for="login-password">Contraseña</label>
+              <a class="forgot-link" href="javascript:void(0)" (click)="triggerHaptic()">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="input-field-wrap">
+              <ion-icon name="lock-closed-outline" class="field-icon"></ion-icon>
+              <input id="login-password" [type]="showPassword ? 'text' : 'password'" class="custom-input"
+                placeholder="Ingresa tu contraseña" [(ngModel)]="password" name="password"
+                autocomplete="current-password" required />
+              <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()"
+                aria-label="Mostrar u ocultar contraseña">
+                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="error-banner" *ngIf="errorMessage">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+
+          <div class="remember-row">
+            <label class="checkbox-container">
+              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+              <span class="checkmark"></span>
+              <span class="checkbox-text">Recordar mi sesión en este equipo</span>
+            </label>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Ingresar a la Plataforma</span>
+            <span *ngIf="isLoading" class="loading-state">Iniciando sesión...</span>
+            <ion-icon name="arrow-forward-outline" *ngIf="!isLoading"></ion-icon>
+          </button>
+        </form>
+
+        <div class="register-footer">
+          <p class="register-text">
+            ¿Aún no eres miembro de Velvet &amp; Blade?
+            <a (click)="goToRegister()" class="register-link">Crear una cuenta</a>
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
-
-  <div class="form-wrap">
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Correo electrónico</ion-label>
-      <ion-input
-        type="email"
-        placeholder="tucorreo@ejemplo.com"
-        [(ngModel)]="email"
-        name="email">
-      </ion-input>
-    </ion-item>
-
-    <ion-item class="field-item" lines="none">
-      <ion-label position="stacked">Contraseña</ion-label>
-      <ion-input
-        type="password"
-        placeholder="Contraseña"
-        [(ngModel)]="password"
-        name="password">
-      </ion-input>
-    </ion-item>
-
-    <ion-text color="primary" *ngIf="errorMessage">
-      <p class="error-msg">⚠ {{ errorMessage }}</p>
-    </ion-text>
-
-    <ion-button expand="block" color="primary" (click)="onLogin()">
-      Iniciar sesión
-    </ion-button>
-
-    <p class="link-row">
-      ¿Aún no tienes cuenta?
-      <a (click)="goToRegister()">Regístrate</a>
-    </p>
-  </div>
-
 </ion-content>
