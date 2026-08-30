@@ -22,12 +22,18 @@ export const routes: Routes = [
     path: 'service-selection',
     loadComponent: () => import('./pages/service-selection/service-selection.page').then(m => m.ServiceSelectionPage)
   },
+  // Punto D (Revisar Horario y Disponibilidad) - pendiente.
+  // Placeholder para no romper la navegacion desde la pantalla de Seleccion de Servicio.
   {
-    path: 'specialist-home',
-    loadComponent: () => import('./pages/specialist-home/specialist-home.page').then(m => m.SpecialistHomePage)
+    path: 'schedule',
+    redirectTo: 'service-selection',
+    pathMatch: 'full'
   },
+  // Home del perfil Especialista - pantalla pendiente.
+  // Placeholder temporal para no romper la redireccion de login/registro.
   {
     path: 'specialist-home',
-    loadComponent: () => import('./pages/specialist-home/specialist-home.page').then(m => m.SpecialistHomePage)
+    redirectTo: 'service-selection',
+    pathMatch: 'full'
   },
 ];

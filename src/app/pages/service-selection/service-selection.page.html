@@ -1,13 +1,137 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>service-selection</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="service-page-content">
+  <div class="service-wrapper">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">service-selection</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <div class="service-card">
+
+      <!-- Encabezado de marca -->
+      <header class="page-topbar">
+        <div class="brand-mini">
+          <div class="mini-logo">V&amp;B</div>
+          <div class="brand-lines">
+            <span class="eyebrow">Velvet &amp; Blade</span>
+            <h1 class="page-title">Selección de Servicio y Estación</h1>
+          </div>
+        </div>
+        <p class="page-desc">
+          Hola<ng-container *ngIf="userName">, {{ userName }}</ng-container>. Elige el servicio que deseas y la
+          estación o profesional de tu preferencia.
+        </p>
+
+        <ol class="step-track">
+          <li class="step" [class.active]="!selectedService" [class.done]="!!selectedService">
+            <span class="step-num">
+              <ion-icon *ngIf="selectedService" name="checkmark-outline"></ion-icon>
+              <ng-container *ngIf="!selectedService">1</ng-container>
+            </span>
+            Servicio
+          </li>
+          <li class="step" [class.active]="!!selectedService && !selectedStation" [class.done]="!!selectedStation">
+            <span class="step-num">
+              <ion-icon *ngIf="selectedStation" name="checkmark-outline"></ion-icon>
+              <ng-container *ngIf="!selectedStation">2</ng-container>
+            </span>
+            Estación
+          </li>
+          <li class="step" [class.active]="!!selectedService && !!selectedStation">
+            <span class="step-num">3</span>
+            Horario
+          </li>
+        </ol>
+      </header>
+
+      <!-- Selector de categoría -->
+      <div class="category-switch">
+        <button type="button" class="cat-btn" [class.active]="activeCategory === 'barberia'"
+          (click)="setCategory('barberia')">
+          <ion-icon name="cut-outline"></ion-icon>
+          <span>Barbería de Autor</span>
+        </button>
+        <button type="button" class="cat-btn" [class.active]="activeCategory === 'unas'" (click)="setCategory('unas')">
+          <ion-icon name="color-palette-outline"></ion-icon>
+          <span>Spa de Uñas</span>
+        </button>
+      </div>
+
+      <!-- Catálogo de servicios -->
+      <section class="block">
+        <div class="block-head">
+          <h2>Servicios disponibles</h2>
+          <span class="count">{{ filteredServices.length }} opciones</span>
+        </div>
+
+        <div class="service-list">
+          <button type="button" class="service-item" *ngFor="let s of filteredServices"
+            [class.selected]="selectedService?.id === s.id" (click)="selectService(s)">
+            <div class="s-icon">
+              <ion-icon [name]="s.icon"></ion-icon>
+            </div>
+            <div class="s-body">
+              <div class="s-top">
+                <strong class="s-name">{{ s.name }}</strong>
+                <span class="s-price">{{ s.price }}</span>
+              </div>
+              <p class="s-desc">{{ s.description }}</p>
+              <div class="s-meta">
+                <span class="chip">
+                  <ion-icon name="time-outline"></ion-icon>{{ s.durationMin }} min
+                </span>
+                <span class="chip ghost">{{ categoryLabel(s.category) }}</span>
+              </div>
+            </div>
+            <div class="s-check">
+              <ion-icon name="checkmark-circle"></ion-icon>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- Selección de estación / profesional -->
+      <section class="block" *ngIf="selectedService">
+        <div class="block-head">
+          <h2>Estación / Profesional</h2>
+          <span class="count">{{ availableStationsCount }} disponibles</span>
+        </div>
+
+        <div class="station-grid">
+          <button type="button" class="station-card" *ngFor="let st of filteredStations"
+            [class.selected]="selectedStation?.id === st.id" [class.busy]="st.status === 'ocupado'"
+            [disabled]="st.status === 'ocupado'" (click)="selectStation(st)">
+            <div class="st-head">
+              <div class="st-avatar">{{ st.initials }}</div>
+              <span class="st-status" [class.free]="st.status === 'disponible'">
+                <span class="dot"></span>{{ st.status === 'disponible' ? 'Disponible' : 'Ocupado' }}
+              </span>
+            </div>
+            <strong class="st-name">{{ st.name }}</strong>
+            <span class="st-pro">{{ st.professional }}</span>
+            <span class="st-role">{{ st.role }}</span>
+            <span class="st-rating">
+              <ion-icon name="star"></ion-icon>{{ st.rating }}
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Resumen y continuación -->
+      <div class="summary-bar" *ngIf="selectedService">
+        <div class="summary-info">
+          <span class="summary-label">Resumen</span>
+          <strong class="summary-main">{{ selectedService.name }}</strong>
+          <span class="summary-sub">
+            <ion-icon name="time-outline"></ion-icon>{{ selectedService.durationMin }} min · {{ selectedService.price }}
+            <ng-container *ngIf="selectedStation">
+              &nbsp;·&nbsp;<ion-icon name="person-outline"></ion-icon>{{ selectedStation.name }} — {{
+              selectedStation.professional }}
+            </ng-container>
+          </span>
+        </div>
+        <button type="button" class="continue-btn" [disabled]="!selectedStation" (click)="continue()">
+          <span>Continuar a Horario</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
 </ion-content>
