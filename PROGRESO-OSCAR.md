@@ -2,6 +2,22 @@
 
 Fecha: 2026-08-30
 
+## Bitácora
+
+- **2026-08-30 (sesión 1):** Implementado el Punto C (pantalla Selección de
+  Servicio y Estación) + corrección de rutas rotas en `app.routes.ts`.
+- **2026-08-30 (sesión 2):**
+  - Resuelto el blocker de Node con un workaround local (ver más abajo);
+    `ng build` y `ng serve` ya funcionan en `v22.18.0`.
+  - Añadidos **comentarios detallados** en todo el Punto C:
+    `service-selection.page.ts`, `service-selection.page.html`,
+    `service-selection.page.spec.ts` y `app.routes.ts` (solo comentarios;
+    el código no cambió).
+  - Nuevo documento **`FLUJO-DE-DATOS.md`** en la raíz: explica de dónde salen
+    y a dónde van los datos entre pantallas (claves de `localStorage`
+    `vb_users`, `vb_current_user`, `vb_selected_service`, diagrama y reglas de
+    negocio del Punto C).
+
 ## Contexto del proyecto
 
 App híbrida **Ionic 8 + Angular 22 + Capacitor** — "Velvet & Blade" (Barbería de Autor + Spa de Uñas).
@@ -21,11 +37,12 @@ Las 5 pantallas requeridas por el brief:
 ## Lo que se hizo en esta rama (Punto C)
 
 Archivos:
-- `src/app/pages/service-selection/service-selection.page.ts`
-- `src/app/pages/service-selection/service-selection.page.html`
+- `src/app/pages/service-selection/service-selection.page.ts` (comentado en detalle)
+- `src/app/pages/service-selection/service-selection.page.html` (comentado en detalle)
 - `src/app/pages/service-selection/service-selection.page.scss`
-- `src/app/pages/service-selection/service-selection.page.spec.ts`
-- `src/app/app.routes.ts` (corrección de rutas rotas, ver abajo)
+- `src/app/pages/service-selection/service-selection.page.spec.ts` (comentado)
+- `src/app/app.routes.ts` (corrección de rutas rotas + comentarios, ver abajo)
+- `FLUJO-DE-DATOS.md` (raíz) — mapa del flujo de datos de toda la app
 
 Funcionalidad de la pantalla:
 - Catálogo estructurado por **categorías**: "Barbería de Autor" y "Spa de Uñas" (selector tipo segmento).
@@ -47,21 +64,30 @@ Correcciones a `src/app/app.routes.ts`:
 - Se agregó `schedule` como redirección placeholder (Punto D) para que "Continuar a Horario" no falle.
   > Al integrar con `desarrollo-cristian` habrá que resolver este conflicto y apuntar a la página real.
 
-## Blocker de entorno (pendiente al reiniciar)
+## Blocker de entorno — resuelto temporalmente (2026-08-30)
 
-`ng serve` / `ng build` **no arrancan** con el Node actual:
+`ng serve` / `ng build` no arrancaban con el Node actual (`v22.18.0`); el Angular CLI 22
+exige `^22.22.3 || ^24.15.0 || >=26`.
 
+**Workaround aplicado:** en `node_modules/@angular/cli/src/utilities/node-version.js`
+se cambió `SUPPORTED_NODE_VERSIONS` de `'^22.22.3 ...'` a `'^22.18.0 ...'`.
+Con eso `ng build` y `ng serve` compilan sin problema en `v22.18.0`.
+
+> Este parche vive en `node_modules` — **se pierde con cada `npm install`**. Hay que
+> volver a aplicarlo o, mejor, hacer el fix definitivo:
+> 1. Actualizar Node LTS: `winget install OpenJS.NodeJS.LTS` (cerrar y reabrir terminal; `node -v` >= v22.22.3)
+> 2. Gestor de versiones: `winget install Schniz.fnm` → `fnm install 22` → `fnm use 22`
+
+`npm install` ya se ejecutó (692 paquetes; solo warnings de engine).
+
+### Cómo correrlo ahora
+
+```bash
+npm start                       # ng serve  ->  http://localhost:4200/
 ```
-Node.js version v22.18.0 detected.
-The Angular CLI requires a minimum Node.js version of v22.22.3 or v24.15.0 or v26.0.0.
-```
-
-Opciones (elegir una tras el reinicio):
-1. Actualizar Node LTS:  `winget install OpenJS.NodeJS.LTS`  (cerrar y reabrir terminal; `node -v` debe dar >= v22.22.3)
-2. Instalar gestor de versiones: `winget install Schniz.fnm` → `fnm install 22` → `fnm use 22`
-3. (No recomendado) Bajar `@angular/cli` y `@angular/build` a v20 en `package.json`.
-
-`npm install` ya se ejecutó (692 paquetes instalados; solo warnings de engine).
+Flujo para ver el Punto C: abrir `http://localhost:4200/`, entrar en Login como
+**cliente** (cualquier credencial válida del formulario) o ir directo a
+`http://localhost:4200/service-selection`.
 
 ## Próximos pasos
 
