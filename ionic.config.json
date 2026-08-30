@@ -1,13 +1,5 @@
 {
-<<<<<<< HEAD
-  "name": "ionic-app-base",
+  "name": "velvet-blade",
   "integrations": {},
   "type": "angular"
-=======
-  "name": "velvet-blade",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
->>>>>>> 90c90f1895fb3fb9b812f35b6977a83543656de0
 }

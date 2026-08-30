@@ -1,0 +1,162 @@
+<ion-content [fullscreen]="true" class="appointments-content">
+  <div class="brand-header">
+    <ion-label class="eyebrow">
+      Mi agenda
+    </ion-label>
+    <h1 class="brand-title">
+      Servicios agendados
+    </h1>
+    <ion-text>
+      <p class="brand-sub">
+        Seguimiento de tus citas y historial de atención
+      </p>
+    </ion-text>
+  </div>
+  <div class="page-wrap">
+    <ion-card class="panel-card">
+      <ion-card-header>
+        <div class="section-header">
+          <ion-card-title>
+            Activas
+          </ion-card-title>
+          <ion-button
+            type="button"
+            fill="clear"
+            class="mini-button"
+            (click)="goToSchedule()">
+            <ion-icon
+              slot="start"
+              name="add-outline">
+            </ion-icon>
+            Nueva
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="appointment-list">
+          <ion-card
+            class="appointment-item"
+            *ngFor="let appointment of activeAppointments">
+            <ion-card-content>
+              <div class="appointment-top">
+                <div class="appointment-info">
+                  <ion-card-title>
+                    {{ appointment.service }}
+                  </ion-card-title>
+                  <ion-text color="medium">
+                    <p>
+                      {{ appointment.professional }}
+                    </p>
+                  </ion-text>
+                </div>
+                <ion-chip
+                  class="status-badge"
+                  [ngClass]="getStatusClass(appointment.status)">
+                  <ion-label>
+                    {{ appointment.status }}
+                  </ion-label>
+                </ion-chip>
+              </div>
+              <div class="appointment-meta">
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="calendar-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.date }}
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="time-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.time }}
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="hourglass-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.duration }}
+                  </ion-label>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="panel-card">
+      <ion-card-header>
+        <div class="section-header">
+          <ion-card-title>
+            Historial
+          </ion-card-title>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="appointment-list">
+          <ion-card
+            class="appointment-item history-item"
+            *ngFor="let appointment of historyAppointments">
+            <ion-card-content>
+              <div class="appointment-top">
+                <div class="appointment-info">
+                  <ion-card-title>
+                    {{ appointment.service }}
+                  </ion-card-title>
+                  <ion-text color="medium">
+                    <p>
+                      {{ appointment.professional }}
+                    </p>
+                  </ion-text>
+                </div>
+                <ion-chip
+                  class="status-badge"
+                  [ngClass]="getStatusClass(appointment.status)">
+                  <ion-label>
+                    {{ appointment.status }}
+                  </ion-label>
+                </ion-chip>
+              </div>
+              <div class="appointment-meta">
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="calendar-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.date }}
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="time-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.time }}
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-icon
+                    slot="start"
+                    name="hourglass-outline">
+                  </ion-icon>
+                  <ion-label>
+                    {{ appointment.duration }}
+                  </ion-label>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
