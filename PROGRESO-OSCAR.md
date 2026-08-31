@@ -17,6 +17,26 @@ Fecha: 2026-08-30
     y a dónde van los datos entre pantallas (claves de `localStorage`
     `vb_users`, `vb_current_user`, `vb_selected_service`, diagrama y reglas de
     negocio del Punto C).
+- **2026-08-30 (sesión 3):**
+  - **Fix definitivo del entorno Node.** Actualizado Node `22.18.0 → 22.23.2`
+    con `winget upgrade --id OpenJS.NodeJS.22`. Revertido el parche de
+    `node_modules` (`SUPPORTED_NODE_VERSIONS` vuelve a `^22.22.3`). Ya **no**
+    hace falta el workaround.
+  - **Fix de `angular.json`:** el budget `anyComponentStyle` (2kb/4kb del
+    starter) rompía `ng build --configuration production`; subido a 12kb/16kb
+    (los SCSS de diseño pesan ~9–10kb).
+  - **Puntos D y E portados** desde `desarrollo-cristian` a esta rama:
+    `src/app/pages/schedule/*` (D) y `src/app/pages/appointments/*` (E).
+    Ya eran `standalone` en origen; se les añadió registro de iconos
+    (`addIcons`), Haptics y **cableado al flujo de datos**:
+    - D lee `vb_selected_service`, y al confirmar hace append en
+      **`vb_appointments`** (clave nueva) y navega a `/appointments`.
+    - E lee `vb_appointments` para la lista "Activas" (con estado vacío);
+      "Historial" sigue hardcodeado.
+  - `app.routes.ts`: `/schedule` y `/appointments` ahora son `loadComponent`
+    reales (se eliminaron los placeholders).
+  - Specs nuevas para D y E. `npm run build` y `npm test` (14 pruebas) en verde.
+  - `FLUJO-DE-DATOS.md` actualizado con `vb_appointments` y el recorrido D → E.
 
 ## Contexto del proyecto
 
@@ -31,8 +51,8 @@ Las 5 pantallas requeridas por el brief:
 | A | Inicio de Sesión (Login) | Completa (en `main`) |
 | B | Registro de Usuario | Completa (en `main`) |
 | **C** | **Selección de Servicio y Estación** | **Implementada en esta rama** |
-| D | Revisar Horario y Disponibilidad | Pendiente (existe avance en rama `desarrollo-cristian`) |
-| E | Servicios Agendados e Historial | Pendiente (existe avance en rama `desarrollo-cristian`) |
+| **D** | **Revisar Horario y Disponibilidad** | **Portada de `desarrollo-cristian` y adaptada a standalone en esta rama** |
+| **E** | **Servicios Agendados e Historial** | **Portada de `desarrollo-cristian` y adaptada a standalone en esta rama** |
 
 ## Lo que se hizo en esta rama (Punto C)
 
@@ -61,41 +81,61 @@ Funcionalidad de la pantalla:
 Correcciones a `src/app/app.routes.ts`:
 - Había **dos rutas duplicadas** a `specialist-home`, una página **inexistente** → rompía el build.
 - Se reemplazaron por redirecciones temporales a `service-selection`.
-- Se agregó `schedule` como redirección placeholder (Punto D) para que "Continuar a Horario" no falle.
-  > Al integrar con `desarrollo-cristian` habrá que resolver este conflicto y apuntar a la página real.
+- (sesión 3) `/schedule` y `/appointments` ya son `loadComponent` reales a los
+  Puntos D y E; se quitaron los placeholders. `/specialist-home` sigue como
+  redirección temporal (fuera de alcance).
 
-## Blocker de entorno — resuelto temporalmente (2026-08-30)
+## Lo que se hizo en esta rama (Puntos D y E) — sesión 3
 
-`ng serve` / `ng build` no arrancaban con el Node actual (`v22.18.0`); el Angular CLI 22
-exige `^22.22.3 || ^24.15.0 || >=26`.
+Portados desde `desarrollo-cristian` y adaptados a esta rama:
 
-**Workaround aplicado:** en `node_modules/@angular/cli/src/utilities/node-version.js`
-se cambió `SUPPORTED_NODE_VERSIONS` de `'^22.22.3 ...'` a `'^22.18.0 ...'`.
-Con eso `ng build` y `ng serve` compilan sin problema en `v22.18.0`.
+- `src/app/pages/schedule/*` — **Punto D**. Resumen del servicio elegido
+  (lee `vb_selected_service`), selector de fecha y bloques de horario. Al
+  "Confirmar cita" hace append en `vb_appointments` y navega a `/appointments`.
+  Se autoprotege: sin selección previa redirige al Punto C.
+- `src/app/pages/appointments/*` — **Punto E**. Lista "Activas" desde
+  `vb_appointments` (con estado vacío) + "Historial" hardcodeado. "Nueva"
+  vuelve al Punto C.
+- Adaptaciones: registro de iconos con `addIcons` (patrón de esta rama),
+  `Haptics` en las interacciones, saludo con `vb_current_user`, y specs con
+  `provideRouter([])` como el resto.
+- Los SCSS de `cristian` usan variables `--ion-color-*` que `variables.scss`
+  de esta rama ya define con la paleta Velvet & Blade → entran on-brand.
+  *(Pendiente: pulido fino para igualar el nivel de detalle visual del Punto C.)*
 
-> Este parche vive en `node_modules` — **se pierde con cada `npm install`**. Hay que
-> volver a aplicarlo o, mejor, hacer el fix definitivo:
-> 1. Actualizar Node LTS: `winget install OpenJS.NodeJS.LTS` (cerrar y reabrir terminal; `node -v` >= v22.22.3)
-> 2. Gestor de versiones: `winget install Schniz.fnm` → `fnm install 22` → `fnm use 22`
+## Entorno Node — RESUELTO de forma definitiva (2026-08-30, sesión 3)
 
-`npm install` ya se ejecutó (692 paquetes; solo warnings de engine).
+Antes: Angular CLI 22 exige `^22.22.3 || ^24.15.0 || >=26` y había `v22.18.0`,
+parcheado a mano en `node_modules` (se perdía con cada `npm install`).
 
-### Cómo correrlo ahora
+Ahora:
+- **Node actualizado a `v22.23.2`** con `winget upgrade --id OpenJS.NodeJS.22`
+  (misma línea 22; instalación de sistema, persistente).
+- Revertido el parche: `node_modules/@angular/cli/.../node-version.js` vuelve a
+  `SUPPORTED_NODE_VERSIONS = '^22.22.3 || ^24.15.0 || >=26.0.0'`.
+- Además: subido el budget `anyComponentStyle` en `angular.json` de 2kb/4kb a
+  12kb/16kb (bloqueaba `ng build --configuration production`).
+
+`npm run build` y `npm test` (14 pruebas) pasan en verde.
+
+### Cómo correrlo
 
 ```bash
 npm start                       # ng serve  ->  http://localhost:4200/
 ```
-Flujo para ver el Punto C: abrir `http://localhost:4200/`, entrar en Login como
-**cliente** (cualquier credencial válida del formulario) o ir directo a
-`http://localhost:4200/service-selection`.
+Flujo completo: `http://localhost:4200/` → Login como **cliente** (cuenta demo
+`cliente.vip@velvetblade.com` / `Velvet2026*`) → Selección de Servicio (C) →
+Continuar a Horario (D) → Confirmar cita → Agendados (E).
 
 ## Próximos pasos
 
-1. Resolver el blocker de Node y levantar con `npm start` (`ng serve`).
-2. Verificar visualmente el flujo Login → Registro → Selección de Servicio y Estación → (Horario).
-3. Integrar Puntos D y E desde `desarrollo-cristian` o implementarlos en esta rama.
-4. Configurar Capacitor: `npx cap init` / `npx cap add android` y plugins Haptics + Toast según el brief.
-5. Abrir PR de `desarrollo-oscar` hacia `main`.
+1. **Verificar visualmente** el flujo completo A → B → C → D → E con `npm start`.
+2. Pulido visual de D y E para igualar el sistema de diseño del Punto C.
+3. Configurar Capacitor: `npx cap init` / `npx cap add android` y plugins
+   Haptics + Toast según el brief.
+4. Abrir PR de `desarrollo-oscar` hacia `main`.
+5. Pedir a Cristian que actualice su rama a standalone desde su equipo (para no
+   arrastrar la divergencia NgModule en futuras integraciones).
 
 ## Comandos útiles
 

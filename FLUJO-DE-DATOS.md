@@ -1,6 +1,8 @@
 # Flujo de datos — Velvet & Blade
 
 Fecha: 2026-08-30 · Rama: `desarrollo-oscar`
+Actualizado: 2026-08-30 (sesión 3) — Puntos D y E portados desde
+`desarrollo-cristian` y adaptados a standalone; nueva clave `vb_appointments`.
 
 Documento local para entender **de dónde salen y a dónde van los datos** entre
 las pantallas. No hay backend todavía: **todo el estado compartido vive en
@@ -25,15 +27,22 @@ las pantallas. No hay backend todavía: **todo el estado compartido vive en
    ║   vb_users            → lista de cuentas registradas en este dispositivo    ║
    ║   vb_current_user     → sesión activa (quién está usando la app ahora)      ║
    ║   vb_selected_service → lo que el cliente está a punto de agendar (Punto C) ║
+   ║   vb_appointments     → citas confirmadas (Punto D → Punto E)               ║
    ╚════════════════════════════════════════════════════════════════════════════╝
-               ▲                        ▲                            │
-               │ lee vb_users           │ lee vb_users               │ lee (al volver)
-               │ (valida credenciales)  │ (evita duplicados)         │ vb_selected_service
-               │                        │                            ▼
-        LOGIN de vuelta          REGISTRO de vuelta        ┌───────────────────────┐
-                                                          │  HORARIO (Punto D)     │  ← PENDIENTE
-                                                          │  consumirá             │
-                                                          │  vb_selected_service   │
+       ▲            ▲                     │                          │
+       │ lee        │ lee vb_users        │ lee (al volver)          │ lee vb_selected_service
+       │ vb_users   │ (evita duplicados)  │ vb_selected_service      ▼
+       │(valida)    │                     │              ┌───────────────────────┐
+   LOGIN vuelta  REGISTRO vuelta          │              │  HORARIO  (Punto D)    │  ← IMPLEMENTADO
+                                          │              │  schedule.page         │
+                                          │              │  escribe vb_appointments│
+                                          │              └───────────┬───────────┘
+                                          │                          │ navega a /appointments
+                                          │                          ▼
+                                          │              ┌───────────────────────┐
+                                          └──"Nueva"──────│  AGENDADOS (Punto E)   │  ← IMPLEMENTADO
+                                             vuelve al C  │  appointments.page     │
+                                                          │  lee vb_appointments   │
                                                           └───────────────────────┘
 ```
 
@@ -107,8 +116,41 @@ Forma exacta que escribe `service-selection.page.ts` → `continue()`:
     atrás desde el Punto D, **rehidrata** `selectedService` y `selectedStation`
     buscándolos por `serviceId` / `stationId` en los catálogos locales.
     La estación solo se restaura **si sigue `disponible`**.
-  - (Futuro) El **Punto D** para saber qué servicio/profesional se agenda y por
-    cuántos minutos.
+  - El **Punto D** (`schedule.page.ts` → `ngOnInit`): lo lee para pintar el
+    resumen ("Tu servicio") y para calcular la cita. Si **no existe**, redirige
+    a `/service-selection` (no se puede agendar sin haber elegido servicio).
+
+### 2.4 `vb_appointments` — citas confirmadas
+
+Arreglo de citas. Lo escribe el **Punto D** y lo consume el **Punto E**.
+Forma exacta que hace `unshift` `schedule.page.ts` → `confirmSelection()`
+(la más reciente queda primera):
+
+```jsonc
+{
+  "id":           1725000000000,          // Date.now() — id local
+  "serviceId":    "corte-precision",      // para resolver contra catálogo si hiciera falta
+  "stationId":    "sillon-1",
+  "service":      "Corte de Precisión",   // = serviceName del Punto C
+  "professional": "Mateo Rivas · Barbería de Autor",  // profesional + categoría
+  "date":         "Hoy 29",               // label + número del día elegido
+  "time":         "11:15",
+  "duration":     "45 min",               // durationMin + " min"
+  "price":        "$45.000",
+  "status":       "Confirmado",           // AppointmentStatus
+  "accent":       "confirmed",            // clave de color del badge
+  "createdAt":    "2026-08-30T20:00:00.000Z"
+}
+```
+
+- **Escribe:** solo `schedule.page.ts` → `confirmSelection()`, al pulsar
+  "Confirmar cita". Hace `push`/`unshift` sobre el arreglo existente (append).
+- **Lee:** `appointments.page.ts` → `ngOnInit()`: rellena la lista **"Activas"**.
+  Filtra entradas sin `service`/`time` por robustez. Si el arreglo está vacío o
+  no existe, la vista muestra el estado "Aún no tienes citas activas".
+- **No se borra ni se edita en ningún sitio todavía** (no hay cancelar/completar).
+- El **"Historial"** del Punto E son datos **hardcodeados** de demo; no salen de
+  esta clave.
 
 ---
 
@@ -133,9 +175,29 @@ Forma exacta que escribe `service-selection.page.ts` → `continue()`:
    - escribe `vb_selected_service` (JSON de arriba).
    - `navigateByUrl('/schedule')`.
 
-5. **/schedule** hoy es un *placeholder* en `app.routes.ts` que **redirige de
-   vuelta** a `/service-selection`. Al volver, `ngOnInit` **relee**
-   `vb_selected_service` y **deja la selección tal como estaba**.
+5. **Horario (Punto D)** — `ngOnInit`:
+   - lee `vb_current_user.name` → saludo.
+   - lee `vb_selected_service` → pinta el resumen "Tu servicio".
+     Si **no existe** → `navigateByUrl('/service-selection')` (no hay nada que agendar).
+   - preselecciona el primer bloque disponible del día activo.
+
+6. Usuario elige **día → bloque de horario**. Estado en memoria
+   (`selectedDate`, `selectedSlot`); **no toca `localStorage`** todavía.
+
+7. Pulsa **"Confirmar cita"** → `confirmSelection()`:
+   - hace `unshift` de la cita nueva en `vb_appointments` (append).
+   - `navigateByUrl('/appointments')`.
+
+8. **Agendados (Punto E)** — `ngOnInit`:
+   - lee `vb_current_user.name` → saludo.
+   - lee `vb_appointments` → lista "Activas" (la recién creada aparece primera).
+   - "Historial" son datos de demo hardcodeados.
+   - Botón **"Nueva"** → `navigateByUrl('/service-selection')` para empezar otro
+     agendamiento.
+
+> Si desde el Punto D se pulsa "Volver", se navega a `/service-selection`; al
+> llegar, su `ngOnInit` **relee** `vb_selected_service` y **restaura** la
+> selección tal como estaba.
 
 ---
 
@@ -159,17 +221,24 @@ Forma exacta que escribe `service-selection.page.ts` → `continue()`:
   la pantalla arranca en blanco en vez de romperse.
 - **Todas** las llamadas a `Haptics` van en `try/catch`: en navegador el plugin
   de Capacitor lanza excepción y no debe interrumpir el flujo.
-- `continue()` navega **aunque falle** el `setItem` (no se bloquea al usuario).
+- `continue()` (C) y `confirmSelection()` (D) navegan **aunque falle** el
+  `setItem` (no se bloquea al usuario).
+- El Punto D **se autoprotege**: sin `vb_selected_service` válido redirige al C.
+- El Punto E tolera un `vb_appointments` vacío/corrupto → estado "sin citas".
 
 ---
 
 ## 6. Deuda técnica / lo que cambiará con backend
 
-- `services` y `stations` están **hardcodeados** en `service-selection.page.ts`.
-  Con API → pasan a un servicio Angular inyectable (`ServiceCatalogService`).
+- `services` y `stations` (C), el calendario `days` (D) y el "Historial" (E)
+  están **hardcodeados** en sus componentes. Con API → servicios Angular
+  inyectables (`ServiceCatalogService`, `AvailabilityService`, `AppointmentsService`).
 - `password` se guarda en **texto plano** en `vb_users` (solo válido para demo).
 - No hay **logout** → `vb_current_user` nunca se limpia.
 - `vb_selected_service` es efímero por diseño; con backend sería un
   *draft de reserva* en servidor, no en `localStorage`.
-- El Punto D y el Punto E (rama `desarrollo-cristian`) definirán claves nuevas
-  (p. ej. `vb_appointments`) que este documento deberá recoger al integrarse.
+- `vb_appointments` solo crece: no hay cancelar / completar / mover cita, y el
+  Punto D no marca como "ocupado" el slot que se acaba de reservar.
+- Los Puntos D y E se **portaron desde `desarrollo-cristian`** y se adaptaron a
+  standalone. Esa rama sigue en arquitectura NgModule y desactualizada respecto
+  a `main`; lo ideal es que su autor la actualice a standalone desde su equipo.

@@ -9,9 +9,9 @@
  *                              ▼   (userType === 'cliente')
  *                     /service-selection   ← PUNTO C (implementado)
  *                              ▼
- *                        /schedule         ← PUNTO D (pendiente, placeholder)
+ *                        /schedule         ← PUNTO D (implementado)
  *                              ▼
- *                     /appointments        ← PUNTO E (pendiente, aún sin ruta)
+ *                     /appointments        ← PUNTO E (implementado)
  *
  * Todas las páginas se cargan con loadComponent (lazy) → cada una es su
  * propio chunk. El estado entre pantallas NO viaja por el router: se pasa
@@ -43,20 +43,20 @@ export const routes: Routes = [
     path: 'service-selection',
     loadComponent: () => import('./pages/service-selection/service-selection.page').then(m => m.ServiceSelectionPage)
   },
-  // -------------------------------------------------------------------------
-  //  PLACEHOLDERS TEMPORALES
-  //  Existen solo para que la navegación no falle mientras faltan pantallas.
-  //  Al integrar la rama `desarrollo-cristian` hay que reemplazarlos por el
-  //  loadComponent real de cada página (y resolver el conflicto de estructura
-  //  NgModule vs standalone).
-  // -------------------------------------------------------------------------
   {
-    // PUNTO D (Revisar Horario y Disponibilidad) — aún no implementado en esta rama.
-    // El botón "Continuar a Horario" del Punto C navega aquí; por ahora reboto
-    // a service-selection para no dejar al usuario en una ruta muerta.
+    // PUNTO D — Revisar Horario y Disponibilidad.
+    // Origen: el botón "Continuar a Horario" del Punto C.
+    // Lee vb_selected_service; al confirmar escribe vb_appointments y navega a
+    // /appointments. Portado desde la rama `desarrollo-cristian` y adaptado a
+    // standalone + al flujo de datos de esta rama (ver FLUJO-DE-DATOS.md).
     path: 'schedule',
-    redirectTo: 'service-selection',
-    pathMatch: 'full'
+    loadComponent: () => import('./pages/schedule/schedule.page').then(m => m.SchedulePage)
+  },
+  {
+    // PUNTO E — Servicios Agendados e Historial.
+    // Lee vb_appointments (lo escribe el Punto D). "Nueva" vuelve al Punto C.
+    path: 'appointments',
+    loadComponent: () => import('./pages/appointments/appointments.page').then(m => m.AppointmentsPage)
   },
   {
     // Home del perfil "Especialista" — pantalla no incluida en el alcance actual.
