@@ -62,8 +62,8 @@ npm -v
 1. Clona el repositorio:
 
 ```bash
-git clone <url-del-repo>
-git checkout desarrollo-oscar
+git clone https://github.com/TamperiG92/Entrega_hibridas.git
+git checkout desarrollo-cristian
 ```
 
 2. Instala dependencias:
