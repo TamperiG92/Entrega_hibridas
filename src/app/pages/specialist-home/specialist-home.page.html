@@ -1,0 +1,98 @@
+<ion-header class="ion-no-border vb-app-header">
+  <ion-toolbar class="vb-toolbar">
+    <ion-buttons slot="start">
+      <button class="header-back-btn" (click)="goToLogin()" aria-label="Salir">
+        <ion-icon name="chevron-forward-outline" class="rotate-180"></ion-icon>
+        <span class="back-text">Salir</span>
+      </button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      <span class="header-brand">VELVET &amp; BLADE</span>
+      <span class="header-subtitle">Agenda del Especialista</span>
+    </ion-title>
+
+    <div slot="end" class="header-profile-pill">
+      <div class="profile-avatar">{{ currentUserInitials }}</div>
+      <span class="profile-name">{{ currentUserName }}</span>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="service-page-content">
+
+  <div class="service-container">
+
+    <div class="page-intro-banner">
+      <div class="intro-left">
+        <div class="step-badge">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Agenda en vivo</span>
+        </div>
+        <h1 class="page-heading">Tu agenda de hoy</h1>
+        <p class="page-subheading">Revisa tus citas asignadas y actualiza el estado de cada servicio a medida que avanza
+          el día.</p>
+      </div>
+
+      <div class="category-toggle-wrap stats-wrap">
+        <div class="cat-pill-btn active">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          <span>Pendientes</span>
+          <span class="count-badge">{{ pendingCount }}</span>
+        </div>
+        <div class="cat-pill-btn">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>Completadas</span>
+          <span class="count-badge">{{ completedCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="services-grid appointments-grid">
+      <div class="service-card appointment-card" [class.selected]="appt.status === 'atencion'"
+        *ngFor="let appt of appointments">
+
+        <div class="card-top-bar">
+          <span class="category-tag">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ appt.time }}
+          </span>
+          <span class="badge-pill" [class]="'status-' + appt.status">
+            {{ statusLabel(appt.status) }}
+          </span>
+        </div>
+
+        <h3 class="service-name">{{ appt.clientName }}</h3>
+        <p class="service-desc">{{ appt.serviceName }}</p>
+
+        <div class="includes-chips">
+          <span class="inc-chip">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ appt.station }}
+          </span>
+        </div>
+
+        <div class="service-footer">
+          <div class="time-price-block">
+            <div class="time-meta">
+              <ion-icon [name]="statusIcon(appt.status)"></ion-icon>
+              <span>{{ statusLabel(appt.status) }}</span>
+            </div>
+          </div>
+
+          <button *ngIf="appt.status === 'confirmado'" type="button" class="mini-action-btn"
+            (click)="markInProgress(appt)">
+            Iniciar
+          </button>
+
+          <button *ngIf="appt.status === 'atencion'" type="button" class="mini-action-btn complete"
+            (click)="markCompleted(appt)">
+            Finalizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</ion-content>
