@@ -1,17 +1,51 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AppointmentsPage } from './appointments.page';
 
 describe('AppointmentsPage', () => {
   let component: AppointmentsPage;
   let fixture: ComponentFixture<AppointmentsPage>;
 
-  beforeEach(() => {
+  function build(): void {
+    TestBed.configureTestingModule({
+      imports: [AppointmentsPage],
+      providers: [provideRouter([])],
+    });
     fixture = TestBed.createComponent(AppointmentsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
+  }
+
+  afterEach(() => localStorage.clear());
 
   it('should create', () => {
+    build();
     expect(component).toBeTruthy();
+  });
+
+  it('sin vb_appointments la lista de activas queda vacía', () => {
+    build();
+    expect(component.hasActive).toBe(false);
+  });
+
+  it('lee las citas activas escritas por el Punto D', () => {
+    localStorage.setItem(
+      'vb_appointments',
+      JSON.stringify([
+        {
+          id: 1,
+          service: 'Corte de Precisión',
+          professional: 'Mateo Rivas · Barbería de Autor',
+          date: 'Hoy 29',
+          time: '11:15',
+          duration: '45 min',
+          status: 'Confirmado',
+          accent: 'confirmed',
+        },
+      ])
+    );
+    build();
+    expect(component.activeAppointments.length).toBe(1);
+    expect(component.activeAppointments[0].service).toBe('Corte de Precisión');
   });
 });

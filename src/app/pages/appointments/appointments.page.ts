@@ -1,10 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-
-import{
+import {
   IonButton,
   IonCard,
   IonCardContent,
@@ -15,8 +13,14 @@ import{
   IonIcon,
   IonItem,
   IonLabel,
-  IonText
+  IonText,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import {
+  addOutline,
+  calendarOutline,
+  hourglassOutline,
+  timeOutline, logOutOutline } from 'ionicons/icons';
 
 type AppointmentStatus = 'Confirmado' | 'En Atención' | 'Completado' | 'Cancelado';
 
@@ -29,6 +33,7 @@ interface Appointment {
   duration: string;
   status: AppointmentStatus;
   accent: string;
+  price?: string;
 }
 
 @Component({
@@ -37,45 +42,24 @@ interface Appointment {
   styleUrls: ['./appointments.page.scss'],
   standalone: true,
   imports: [
-  CommonModule,
-  FormsModule,
-  IonContent,
-  IonButton,
-  IonCard,
-  IonCardHeader,
-  IonCardContent,
-  IonCardTitle,
-  IonChip,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonText
-]
+    CommonModule,
+    FormsModule,
+    IonContent,
+    IonButton,
+    IonCard,
+    IonCardHeader,
+    IonCardContent,
+    IonCardTitle,
+    IonChip,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonText,
+  ],
 })
-export class AppointmentsPage {
-  activeAppointments: Appointment[] = [
-    {
-      id: 1,
-      service: 'Corte con navaja premium',
-      professional: 'Mateo · Barbería',
-      date: 'Jueves 29',
-      time: '10:30 AM',
-      duration: '45 min',
-      status: 'Confirmado',
-      accent: 'confirmed',
-    },
-    {
-      id: 2,
-      service: 'Manicure + Spa de uñas',
-      professional: 'Valeria · Nails Studio',
-      date: 'Viernes 30',
-      time: '1:15 PM',
-      duration: '60 min',
-      status: 'En Atención',
-      accent: 'in-progress',
-    },
-  ];
-
+export class AppointmentsPage implements OnInit {
+  userName = '';
+  activeAppointments: Appointment[] = [];
   historyAppointments: Appointment[] = [
     {
       id: 3,
@@ -99,10 +83,47 @@ export class AppointmentsPage {
     },
   ];
 
-  constructor(private readonly router: Router) {}
+  constructor(private readonly router: Router) {
+    addIcons({logOutOutline,addOutline,calendarOutline,timeOutline,hourglassOutline});
+  }
 
-  goToSchedule() {
-    this.router.navigateByUrl('/schedule');
+  ngOnInit(): void {
+    try {
+      const raw = localStorage.getItem('vb_current_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.userName = (parsed?.name || '').split(' ')[0] || '';
+      }
+    } catch {
+      // sin saludo
+    }
+
+    try {
+      const raw = localStorage.getItem('vb_appointments');
+      if (raw) {
+        const list = JSON.parse(raw);
+        this.activeAppointments = Array.isArray(list)
+          ? list.filter((a: Appointment) => a && a.service && a.time)
+          : [];
+      }
+    } catch {
+      // sin citas activas
+    }
+  }
+
+  get hasActive(): boolean {
+    return this.activeAppointments.length > 0;
+  }
+
+  newBooking(): void {
+    this.router.navigateByUrl('/service-selection');
+  }
+
+  logout(): void {
+    localStorage.removeItem('vb_current_user');
+    localStorage.removeItem('vb_selected_service');
+    localStorage.removeItem('vb_appointments');
+    this.router.navigateByUrl('/login');
   }
 
   getStatusClass(status: AppointmentStatus): string {

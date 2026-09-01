@@ -1,45 +1,44 @@
 <ion-content [fullscreen]="true" class="schedule-content">
   <div class="brand-header">
-    <ion-button
-      type="button"
-      fill="clear"
-      class="back-button"
-      (click)="goBack()"
-      aria-label="Volver">
-      <ion-icon name="arrow-back-outline">←</ion-icon>
+    <ion-button type="button" fill="clear" class="back-button" (click)="goBack()" aria-label="Volver al servicio">
+      <ion-icon name="arrow-back-outline"></ion-icon>
     </ion-button>
-      <hr>
-      <hr>
-      <hr>
-    <ion-label class="eyebrow">
-      Paso 2
-    </ion-label>
-    <h1 class="brand-title">
-      Selecciona tu horario
-    </h1>
+
+    <ion-label class="eyebrow">Paso 3 · Horario</ion-label>
+    <h1 class="brand-title">Selecciona tu horario</h1>
     <ion-text>
       <p class="brand-sub">
-        Elige la fecha y confirma la cita ideal para ti
+        <ng-container *ngIf="userName">Casi listo, {{ userName }}. </ng-container>
+        Elige la fecha y confirma la cita ideal para ti.
       </p>
     </ion-text>
   </div>
+
   <div class="form-wrap">
+    <ion-card class="summary-card" *ngIf="selection">
+      <ion-card-header>
+        <ion-card-subtitle>Tu servicio</ion-card-subtitle>
+        <ion-card-title>{{ selection.serviceName }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="summary-line">
+          {{ categoryLabel }} · {{ selection.stationName }} · {{ selection.professional }}
+        </p>
+        <p class="summary-line strong">
+          {{ selection.durationMin }} min · {{ selection.price }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+
     <ion-card class="panel-card">
       <ion-card-header>
         <div class="section-header">
-          <ion-card-title>
-            Fecha disponible
-          </ion-card-title>
-          <ion-card-subtitle>
-            Próximos días
-          </ion-card-subtitle>
+          <ion-card-title>Fecha disponible</ion-card-title>
+          <ion-card-subtitle>Próximos días</ion-card-subtitle>
         </div>
       </ion-card-header>
       <ion-card-content>
-        <div
-          class="date-selector"
-          role="listbox"
-          aria-label="Selector de fechas">
+        <div class="date-selector" role="listbox" aria-label="Selector de fechas">
           <ion-button
             *ngFor="let day of days"
             type="button"
@@ -49,22 +48,17 @@
             [attr.aria-selected]="selectedDate === day.id"
             (click)="selectDate(day.id)">
             <div class="date-content">
-              <ion-label class="day-name">
-                {{ day.label }}
-              </ion-label>
-              <strong>
-                {{ day.dateNumber }}
-              </strong>
+              <ion-label class="day-name">{{ day.label }}</ion-label>
+              <strong>{{ day.dateNumber }}</strong>
             </div>
           </ion-button>
         </div>
       </ion-card-content>
     </ion-card>
+
     <ion-card class="panel-card">
       <ion-card-header>
-        <ion-card-title>
-          Bloques de horario
-        </ion-card-title>
+        <ion-card-title>Bloques de horario</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="slots-grid">
@@ -78,28 +72,19 @@
             [disabled]="slot.state !== 'available'"
             (click)="selectSlot(slot)">
             <div class="slot-content">
-              <ion-label class="slot-time">
-                {{ slot.time }}
-              </ion-label>
+              <ion-label class="slot-time">{{ slot.time }}</ion-label>
               <ion-note>
-                <ng-container *ngIf="slot.state === 'available'">
-                  Disponible
-                </ng-container>
-                <ng-container *ngIf="slot.state === 'occupied'">
-                  Ocupado
-                </ng-container>
-                <ng-container *ngIf="slot.state === 'reserved'">
-                  Reservado
-                </ng-container>
+                <ng-container *ngIf="slot.state === 'available'">Disponible</ng-container>
+                <ng-container *ngIf="slot.state === 'occupied'">Ocupado</ng-container>
+                <ng-container *ngIf="slot.state === 'reserved'">Reservado</ng-container>
               </ion-note>
             </div>
           </ion-button>
         </div>
       </ion-card-content>
     </ion-card>
-    <div
-      class="legend"
-      aria-label="Leyenda de horarios">
+
+    <div class="legend" aria-label="Leyenda de horarios">
       <ion-chip class="available">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <ion-label>Disponible</ion-label>
@@ -113,46 +98,30 @@
         <ion-label>Reservado</ion-label>
       </ion-chip>
     </div>
-    <ion-card
-      class="summary-card"
-      *ngIf="selectedSlot">
+
+    <ion-card class="confirm-card" *ngIf="selectedSlot">
       <ion-card-header>
-        <ion-card-subtitle>
-          Cita elegida
-        </ion-card-subtitle>
+        <ion-card-subtitle>Cita elegida</ion-card-subtitle>
         <ion-card-title>
-          {{ getSelectedDay().label }}
-          {{ getSelectedDay().dateNumber }}
+          {{ getSelectedDay().label }} {{ getSelectedDay().dateNumber }}
         </ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <div class="summary-hour">
+        <div class="confirm-hour">
           <ion-icon name="time-outline"></ion-icon>
-          <ion-label>
-            {{ selectedSlot.time }}
-          </ion-label>
+          <ion-label>{{ selectedSlot.time }}</ion-label>
         </div>
-        <ion-button
-          expand="block"
-          color="primary"
-          (click)="confirmSelection()"
-          [disabled]="!selectedSlot">
-          <ion-icon
-            slot="start"
-            name="checkmark-circle-outline">
-          </ion-icon>
+        <ion-button expand="block" color="primary" (click)="confirmSelection()" [disabled]="!selectedSlot">
+          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
           Confirmar cita
         </ion-button>
       </ion-card-content>
     </ion-card>
-    <ion-text
-      color="success"
-      *ngIf="confirmedAppointment">
+
+    <ion-text color="success" *ngIf="confirmedAppointment">
       <div class="success-msg">
         <ion-icon name="checkmark-circle"></ion-icon>
-        <ion-label>
-          {{ confirmedAppointment }}
-        </ion-label>
+        <ion-label>{{ confirmedAppointment }}</ion-label>
       </div>
     </ion-text>
   </div>

@@ -1,10 +1,8 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
-
 /* Velvet & Blade — paleta */
 :root {
+    :root {
   color-scheme: light only;
-
+}
   /** primary — blade crimson (CTAs, botones principales) **/
   --ion-color-primary: #D62839;
   --ion-color-primary-rgb: 214, 40, 57;
@@ -56,4 +54,3 @@
   --ion-background-color: #FBF6F4;
   --ion-text-color: #2B1B26;
 }
-
