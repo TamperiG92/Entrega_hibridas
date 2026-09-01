@@ -1,8 +1,7 @@
 /* Velvet & Blade — paleta */
 :root {
-    :root {
   color-scheme: light only;
-}
+
   /** primary — blade crimson (CTAs, botones principales) **/
   --ion-color-primary: #D62839;
   --ion-color-primary-rgb: 214, 40, 57;
@@ -53,4 +52,16 @@
 
   --ion-background-color: #FBF6F4;
   --ion-text-color: #2B1B26;
+
+  --vb-gradient-hero: linear-gradient(135deg, #4e1030 0%, #7a2e4a 38%, #bf1f52 100%);
+  --vb-gradient-card: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.94));
+  --vb-gradient-crimson: linear-gradient(135deg, #d62839 0%, #b31c4b 100%);
+  --vb-gold-light: #f6d79d;
+  --vb-gold-dark: #b86d19;
+  --vb-card-border: 1px solid rgba(122, 46, 74, 0.12);
+  --vb-shadow-luxury: 0 18px 40px rgba(36, 18, 33, 0.12);
+  --vb-radius-sm: 10px;
+  --vb-radius-md: 14px;
+  --vb-radius-lg: 18px;
 }
+

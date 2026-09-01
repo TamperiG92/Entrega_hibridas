@@ -23,7 +23,6 @@ import {
   starOutline
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { IonIcon } from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-register',
