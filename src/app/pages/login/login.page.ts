@@ -9,7 +9,6 @@ import {
   IonInput,
   IonButton,
   IonText,
-  IonIcon,
 } from '@ionic/angular';
 
 @Component({
@@ -26,7 +25,6 @@ import {
     IonInput,
     IonButton,
     IonText,
-    IonIcon,
   ],
 })
 export class LoginPage {
