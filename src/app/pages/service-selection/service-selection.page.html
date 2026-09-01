@@ -1,259 +1,188 @@
-<ion-header class="ion-no-border vb-app-header">
-  <ion-toolbar class="vb-toolbar">
-    <ion-buttons slot="start">
-      <button class="header-back-btn" (click)="goToLogin()" aria-label="Volver">
-        <ion-icon name="chevron-forward-outline" class="rotate-180"></ion-icon>
-        <span class="back-text">Salir</span>
-      </button>
-    </ion-buttons>
+<!--
+  ============================================================================
+   PUNTO C — Template de "Selección de Servicio y Estación"
+  ============================================================================
+   Estructura visual (de arriba a abajo):
+     1. page-topbar ....... marca + saludo + indicador de pasos (1·2·3)
+     2. category-switch ... conmutador Barbería / Spa de Uñas
+     3. block (servicios) . lista filtrada por categoría  -> selectService()
+     4. block (estación) .. solo visible si YA hay servicio -> selectStation()
+     5. summary-bar ....... resumen fijo + botón "Continuar a Horario"
 
-    <ion-title class="header-title">
-      <span class="header-brand">VELVET &amp; BLADE</span>
-      <span class="header-subtitle">Reserva de Servicios</span>
-    </ion-title>
-
-    <div slot="end" class="header-profile-pill">
-      <div class="profile-avatar">{{ currentUserInitials }}</div>
-      <span class="profile-name">{{ currentUserName }}</span>
-    </div>
-  </ion-toolbar>
-</ion-header>
-
+   Fuentes de estado (todas del componente .ts):
+     userName, activeCategory, selectedService, selectedStation,
+     filteredServices, filteredStations, availableStationsCount
+  ============================================================================
+-->
 <ion-content [fullscreen]="true" class="service-page-content">
-  
-  <div class="service-container">
+  <div class="service-wrapper">
 
-    <div class="page-intro-banner">
-      <div class="intro-left">
-        <div class="step-badge">
-          <ion-icon name="sparkles-outline"></ion-icon>
-          <span>Paso 1 de 3: Selección</span>
+    <div class="service-card">
+
+      <!-- ============================================================= -->
+      <!-- 1. ENCABEZADO: marca, saludo personalizado e hilo de pasos    -->
+      <!-- ============================================================= -->
+      <header class="page-topbar">
+        <div class="brand-mini">
+          <div class="mini-logo">V&amp;B</div>
+          <div class="brand-lines">
+            <span class="eyebrow">Velvet &amp; Blade</span>
+            <h1 class="page-title">Selección de Servicio y Estación</h1>
+          </div>
         </div>
-        <h1 class="page-heading">Catálogo de Experiencias</h1>
-        <p class="page-subheading">Elige tu servicio de autor, selecciona la estación y el especialista de tu preferencia.</p>
-      </div>
+        <!-- El nombre solo se muestra si se pudo leer de vb_current_user -->
+        <p class="page-desc">
+          Hola<ng-container *ngIf="userName">, {{ userName }}</ng-container>. Elige el servicio que deseas y la
+          estación o profesional de tu preferencia.
+        </p>
 
-      <div class="category-toggle-wrap">
-        <button
-          type="button"
-          class="cat-pill-btn"
-          [class.active]="activeCategory === 'barberia'"
+        <!-- Indicador de progreso. Cada <li> alterna 3 estados con clases:
+               .active = paso en curso    .done = paso ya completado
+             La lógica vive aquí en el template (no en el .ts) porque es puro
+             estado derivado de selectedService / selectedStation. -->
+        <ol class="step-track">
+          <!-- Paso 1 (Servicio): activo mientras NO haya servicio; hecho cuando lo hay -->
+          <li class="step" [class.active]="!selectedService" [class.done]="!!selectedService">
+            <span class="step-num">
+              <ion-icon *ngIf="selectedService" name="checkmark-outline"></ion-icon>
+              <ng-container *ngIf="!selectedService">1</ng-container>
+            </span>
+            Servicio
+          </li>
+          <!-- Paso 2 (Estación): activo cuando hay servicio pero aún no estación -->
+          <li class="step" [class.active]="!!selectedService && !selectedStation" [class.done]="!!selectedStation">
+            <span class="step-num">
+              <ion-icon *ngIf="selectedStation" name="checkmark-outline"></ion-icon>
+              <ng-container *ngIf="!selectedStation">2</ng-container>
+            </span>
+            Estación
+          </li>
+          <!-- Paso 3 (Horario): activo solo cuando los dos anteriores están completos.
+               No se marca .done aquí: se completa ya en el Punto D. -->
+          <li class="step" [class.active]="!!selectedService && !!selectedStation">
+            <span class="step-num">3</span>
+            Horario
+          </li>
+        </ol>
+      </header>
+
+      <!-- ============================================================= -->
+      <!-- 2. CONMUTADOR DE CATEGORÍA  ->  setCategory()                 -->
+      <!-- ============================================================= -->
+      <div class="category-switch">
+        <button type="button" class="cat-btn" [class.active]="activeCategory === 'barberia'"
           (click)="setCategory('barberia')">
           <ion-icon name="cut-outline"></ion-icon>
           <span>Barbería de Autor</span>
-          <span class="count-badge">4</span>
         </button>
-
-        <button
-          type="button"
-          class="cat-pill-btn"
-          [class.active]="activeCategory === 'unas'"
-          (click)="setCategory('unas')">
+        <button type="button" class="cat-btn" [class.active]="activeCategory === 'unas'" (click)="setCategory('unas')">
           <ion-icon name="color-palette-outline"></ion-icon>
           <span>Spa de Uñas</span>
-          <span class="count-badge">4</span>
         </button>
       </div>
-    </div>
 
-    <div class="main-dashboard-grid">
-
-      <div class="services-column">
-
-        <div class="filter-search-bar">
-          <div class="search-input-box">
-            <ion-icon name="search-outline"></ion-icon>
-            <input
-              type="text"
-              placeholder="Buscar corte, barba, manicura rusa, polygel..."
-              [(ngModel)]="searchQuery"
-            />
-          </div>
-          <span class="results-hint">
-            {{ filteredServices.length }} servicios disponibles
-          </span>
+      <!-- ============================================================= -->
+      <!-- 3. CATÁLOGO DE SERVICIOS (filtrado por activeCategory)        -->
+      <!--    Cada tarjeta es un <button> -> selectService(s)            -->
+      <!-- ============================================================= -->
+      <section class="block">
+        <div class="block-head">
+          <h2>Servicios disponibles</h2>
+          <!-- Contador reactivo: longitud del getter filteredServices -->
+          <span class="count">{{ filteredServices.length }} opciones</span>
         </div>
 
-        <div class="services-grid">
-          <div
-            *ngFor="let service of filteredServices"
-            class="service-card"
-            [class.selected]="selectedService?.id === service.id"
-            (click)="selectService(service)">
-
-            <div class="card-top-bar">
-              <span class="category-tag">
-                <ion-icon [name]="service.iconName"></ion-icon>
-                {{ service.categoryLabel }}
-              </span>
-              <span class="badge-pill" *ngIf="service.badge">
-                {{ service.badge }}
-              </span>
+        <div class="service-list">
+          <!-- trackBy implícito por identidad; el arreglo es readonly y estable -->
+          <button type="button" class="service-item" *ngFor="let s of filteredServices"
+            [class.selected]="selectedService?.id === s.id" (click)="selectService(s)">
+            <div class="s-icon">
+              <!-- name se enlaza dinámicamente al campo s.icon del modelo -->
+              <ion-icon [name]="s.icon"></ion-icon>
             </div>
-
-            <h3 class="service-name">{{ service.name }}</h3>
-            <p class="service-desc">{{ service.description }}</p>
-
-            <div class="includes-chips">
-              <span *ngFor="let inc of service.includes" class="inc-chip">
-                ✓ {{ inc }}
-              </span>
-            </div>
-
-            <div class="service-footer">
-              <div class="time-price-block">
-                <div class="time-meta">
-                  <ion-icon name="time-outline"></ion-icon>
-                  <span>{{ service.duration }} min</span>
-                </div>
-                <div class="price-meta">
-                  <span class="price-val">{{ formatPrice(service.price) }}</span>
-                </div>
+            <div class="s-body">
+              <div class="s-top">
+                <strong class="s-name">{{ s.name }}</strong>
+                <span class="s-price">{{ s.price }}</span>
               </div>
-
-              <div class="select-check-circle">
-                <ion-icon name="checkmark-circle" *ngIf="selectedService?.id === service.id"></ion-icon>
+              <p class="s-desc">{{ s.description }}</p>
+              <div class="s-meta">
+                <!-- durationMin: dato que luego viaja al Punto D -->
+                <span class="chip">
+                  <ion-icon name="time-outline"></ion-icon>{{ s.durationMin }} min
+                </span>
+                <span class="chip ghost">{{ categoryLabel(s.category) }}</span>
               </div>
             </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="sidebar-column">
-
-        <div class="sidebar-box workstation-box">
-          <div class="box-header">
-            <div class="box-header-title">
-              <ion-icon name="storefrontOutline"></ion-icon>
-              <h4>1. Estación de Trabajo</h4>
+            <!-- Marca de "seleccionado"; su visibilidad la controla la clase .selected via SCSS -->
+            <div class="s-check">
+              <ion-icon name="checkmark-circle"></ion-icon>
             </div>
-            <span class="active-tag">{{ activeCategory === 'barberia' ? 'Sillones' : 'Mesas' }}</span>
-          </div>
-
-          <div class="stations-grid">
-            <div
-              *ngFor="let station of filteredStations"
-              class="station-item"
-              [class.selected]="selectedStation?.id === station.id"
-              (click)="selectStation(station)">
-              <div class="station-top">
-                <span class="station-number">0{{ station.number }}</span>
-                <span class="station-status-badge">Disponible</span>
-              </div>
-              <strong class="station-name">{{ station.name }}</strong>
-              <p class="station-desc">{{ station.description }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="sidebar-box specialists-box">
-          <div class="box-header">
-            <div class="box-header-title">
-              <ion-icon name="personOutline"></ion-icon>
-              <h4>2. Especialista Asignado</h4>
-            </div>
-          </div>
-
-          <div class="specialists-list">
-            <div
-              *ngFor="let specialist of filteredSpecialists"
-              class="specialist-item"
-              [class.selected]="selectedSpecialist?.id === specialist.id"
-              (click)="selectSpecialist(specialist)">
-              <div class="specialist-avatar" [style.background]="specialist.avatarColor">
-                {{ specialist.name.charAt(0) }}
-              </div>
-              <div class="specialist-info">
-                <strong class="specialist-name">{{ specialist.name }}</strong>
-                <span class="specialist-role">{{ specialist.role }}</span>
-                <div class="rating-row">
-                  <ion-icon name="star" class="star-icon"></ion-icon>
-                  <span class="rating-num">{{ specialist.rating }}</span>
-                  <span class="reviews-num">({{ specialist.reviewsCount }} citas)</span>
-                </div>
-              </div>
-              <div class="specialist-radio">
-                <div class="radio-inner" *ngIf="selectedSpecialist?.id === specialist.id"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sidebar-box summary-card">
-          <div class="summary-header">
-            <h4>Resumen de tu Reserva</h4>
-            <span class="summary-badge">En Vivo</span>
-          </div>
-
-          <div class="summary-details">
-            <div class="summary-row">
-              <span class="label">Servicio:</span>
-              <strong class="value">{{ selectedService ? selectedService.name : 'Ninguno' }}</strong>
-            </div>
-
-            <div class="summary-row">
-              <span class="label">Estación:</span>
-              <strong class="value">{{ selectedStation ? selectedStation.name : 'No seleccionada' }}</strong>
-            </div>
-
-            <div class="summary-row">
-              <span class="label">Especialista:</span>
-              <strong class="value">{{ selectedSpecialist ? selectedSpecialist.name : 'No asignado' }}</strong>
-            </div>
-
-            <div class="summary-row">
-              <span class="label">Tiempo Estimado:</span>
-              <strong class="value">{{ selectedService ? selectedService.duration + ' minutos' : '--' }}</strong>
-            </div>
-
-            <div class="summary-divider"></div>
-
-            <div class="total-row">
-              <div>
-                <span class="total-label">Total a Pagar</span>
-                <span class="tax-hint">IVA incluido</span>
-              </div>
-              <span class="total-price">{{ selectedService ? formatPrice(selectedService.price) : '$0' }}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="continue-schedule-btn"
-            [disabled]="!selectedService || !selectedStation || !selectedSpecialist"
-            (click)="proceedToScheduling()">
-            <span>Continuar a Horarios (Punto D)</span>
-            <ion-icon name="arrow-forward-outline"></ion-icon>
           </button>
         </div>
+      </section>
 
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="mobile-sticky-footer">
-    <div class="mobile-footer-inner">
-      <div class="mobile-summary-left">
-        <span class="mobile-svc-name">{{ selectedService ? selectedService.name : 'Selecciona un servicio' }}</span>
-        <div class="mobile-meta">
-          <span class="mobile-time">⏱ {{ selectedService ? selectedService.duration + ' min' : '--' }}</span>
-          <span class="mobile-price">{{ selectedService ? formatPrice(selectedService.price) : '$0' }}</span>
+      <!-- ============================================================= -->
+      <!-- 4. ESTACIÓN / PROFESIONAL                                     -->
+      <!--    *ngIf: este bloque NO existe en el DOM hasta que hay       -->
+      <!--    un servicio elegido (paso 1 completo).                     -->
+      <!-- ============================================================= -->
+      <section class="block" *ngIf="selectedService">
+        <div class="block-head">
+          <h2>Estación / Profesional</h2>
+          <span class="count">{{ availableStationsCount }} disponibles</span>
         </div>
+
+        <div class="station-grid">
+          <!-- filteredStations = estaciones de la misma categoría que el servicio.
+               [disabled] + [class.busy] cuando status === 'ocupado':
+               doble barrera (visual + funcional) contra seleccionar ocupadas. -->
+          <button type="button" class="station-card" *ngFor="let st of filteredStations"
+            [class.selected]="selectedStation?.id === st.id" [class.busy]="st.status === 'ocupado'"
+            [disabled]="st.status === 'ocupado'" (click)="selectStation(st)">
+            <div class="st-head">
+              <div class="st-avatar">{{ st.initials }}</div>
+              <!-- .free pinta el punto/verde solo si está disponible -->
+              <span class="st-status" [class.free]="st.status === 'disponible'">
+                <span class="dot"></span>{{ st.status === 'disponible' ? 'Disponible' : 'Ocupado' }}
+              </span>
+            </div>
+            <strong class="st-name">{{ st.name }}</strong>
+            <span class="st-pro">{{ st.professional }}</span>
+            <span class="st-role">{{ st.role }}</span>
+            <span class="st-rating">
+              <ion-icon name="star"></ion-icon>{{ st.rating }}
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- 5. BARRA DE RESUMEN + CONTINUAR  ->  continue()               -->
+      <!--    Aparece junto con el paso 2 (cuando ya hay servicio).      -->
+      <!--    El botón se habilita solo cuando TAMBIÉN hay estación.     -->
+      <!-- ============================================================= -->
+      <div class="summary-bar" *ngIf="selectedService">
+        <div class="summary-info">
+          <span class="summary-label">Resumen</span>
+          <strong class="summary-main">{{ selectedService.name }}</strong>
+          <span class="summary-sub">
+            <ion-icon name="time-outline"></ion-icon>{{ selectedService.durationMin }} min · {{ selectedService.price }}
+            <!-- El tramo de estación solo se añade si ya se eligió una -->
+            <ng-container *ngIf="selectedStation">
+              &nbsp;·&nbsp;<ion-icon name="person-outline"></ion-icon>{{ selectedStation.name }} — {{
+              selectedStation.professional }}
+            </ng-container>
+          </span>
+        </div>
+        <!-- continue() persiste vb_selected_service y navega a /schedule (Punto D) -->
+        <button type="button" class="continue-btn" [disabled]="!selectedStation" (click)="continue()">
+          <span>Continuar a Horario</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
       </div>
 
-      <button
-        type="button"
-        class="mobile-continue-btn"
-        [disabled]="!selectedService"
-        (click)="proceedToScheduling()">
-        <span>Continuar</span>
-        <ion-icon name="arrow-forward-outline"></ion-icon>
-      </button>
     </div>
+
   </div>
-
 </ion-content>
-

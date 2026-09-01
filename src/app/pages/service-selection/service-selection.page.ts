@@ -1,66 +1,110 @@
+/**
+ * ============================================================================
+ *  PUNTO C — Pantalla "Selección de Servicio y Estación"
+ * ============================================================================
+ *
+ *  Rol dentro del flujo de la app (Velvet & Blade):
+ *
+ *      Login / Registro  ──▶  [ ESTA PANTALLA ]  ──▶  Punto D (Horario)
+ *
+ *  Qué hace el usuario aquí:
+ *    1. Elige una CATEGORÍA  ("Barbería de Autor" | "Spa de Uñas").
+ *    2. Elige un SERVICIO dentro de esa categoría (define duración y precio).
+ *    3. Elige una ESTACIÓN / PROFESIONAL disponible para ese servicio.
+ *    4. Pulsa "Continuar a Horario" → se persiste la selección y se navega
+ *       a /schedule (Punto D).
+ *
+ *  Origen y destino de los datos (ver también FLUJO-DE-DATOS.md):
+ *
+ *    localStorage["vb_current_user"]     ──lee──▶  saludo con el nombre
+ *        (lo escribe Login/Registro)
+ *
+ *    localStorage["vb_selected_service"] ◀─escribe/lee─▶  ESTA PANTALLA
+ *        - se escribe al pulsar "Continuar a Horario"
+ *        - se vuelve a leer en ngOnInit() para restaurar la selección
+ *          si el usuario regresa desde el Punto D
+ *        - lo consumirá el Punto D para saber qué se está agendando
+ *
+ *  Nota: hoy NO hay backend. Todo el "estado de negocio" (catálogo de
+ *  servicios y estaciones) está hardcodeado en este componente como
+ *  arreglos `readonly`. Cuando exista API, `services` y `stations`
+ *  pasarán a venir de un servicio Angular inyectado.
+ * ============================================================================
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonIcon
-} from '@ionic/angular';
+// Solo se importan los componentes de Ionic realmente usados en el template
+// (standalone components → no se carga todo IonicModule).
+import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   cutOutline,
   colorPaletteOutline,
-  timeOutline,
-  cashOutline,
   sparklesOutline,
-  star,
-  personOutline,
-  checkmarkCircle,
+  happyOutline,
+  flameOutline,
+  handLeftOutline,
+  footstepsOutline,
+  brushOutline,
+  timeOutline,
   arrowForwardOutline,
-  informationCircleOutline,
-  chevronForwardOutline,
-  pinOutline,
-  shieldCheckmarkOutline,
-  storefrontOutline,
-  searchOutline
+  checkmarkCircle,
+  checkmarkOutline,
+  personOutline,
+  star,
+  calendarOutline
 } from 'ionicons/icons';
+// Haptics: vibración sutil en cada interacción. En navegador el plugin lanza
+// excepción → por eso TODAS las llamadas van envueltas en try/catch y nunca
+// bloquean el flujo (mismo patrón que login.page.ts y register.page.ts).
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
-export interface ServiceItem {
+/** Las dos líneas de negocio del local. Se usa como clave de filtrado. */
+type Category = 'barberia' | 'unas';
+
+/** Estado operativo de una estación en este momento. */
+type StationStatus = 'disponible' | 'ocupado';
+
+/**
+ * Un servicio del catálogo.
+ * `durationMin` y `price` son los datos que viajan al Punto D dentro de
+ * `vb_selected_service` para calcular slots de horario y el total a cobrar.
+ */
+interface Service {
+  /** Identificador estable; es lo que se guarda en localStorage, no el nombre. */
   id: string;
   name: string;
-  category: 'barberia' | 'unas';
-  categoryLabel: string;
   description: string;
-  duration: number;
-  price: number;
-  badge?: string;
-  iconName: string;
-  includes: string[];
+  /** Duración en minutos — la usa el Punto D para dimensionar el bloque de agenda. */
+  durationMin: number;
+  /** Precio ya formateado como texto ("$45.000"). No es número: es solo display. */
+  price: string;
+  /** Categoría a la que pertenece; enlaza servicio ↔ estaciones compatibles. */
+  category: Category;
+  /** Nombre del icono de ionicons (debe estar registrado en addIcons más abajo). */
+  icon: string;
 }
 
-export interface Workstation {
+/**
+ * Una estación física (sillón / mesa) y el profesional asignado a ella.
+ * Solo se pueden seleccionar las que tienen `status === 'disponible'`.
+ */
+interface Station {
   id: string;
+  /** Etiqueta visible del puesto: "Sillón 1", "Mesa 2"... */
   name: string;
-  type: 'barberia' | 'unas';
-  number: number;
-  status: 'disponible' | 'ocupado' | 'reservado';
-  description: string;
-}
-
-export interface Specialist {
-  id: string;
-  name: string;
+  professional: string;
+  /** Iniciales para el avatar circular cuando no hay foto. */
+  initials: string;
   role: string;
-  type: 'barberia' | 'unas';
+  /** Debe coincidir con la categoría del servicio elegido para aparecer en la lista. */
+  category: Category;
+  status: StationStatus;
+  /** Valoración media (0–5); solo informativo en la tarjeta. */
   rating: number;
-  reviewsCount: number;
-  available: boolean;
-  avatarColor: string;
 }
 
 @Component({
@@ -68,347 +112,358 @@ export interface Specialist {
   templateUrl: './service-selection.page.html',
   styleUrls: ['./service-selection.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonIcon
-  ]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon]
 })
 export class ServiceSelectionPage implements OnInit {
-  activeCategory: 'barberia' | 'unas' = 'barberia';
-  searchQuery: string = '';
+  // ---------------------------------------------------------------------------
+  //  ESTADO DE LA VISTA  (todo lo que el template lee/escribe)
+  // ---------------------------------------------------------------------------
 
-  selectedService: ServiceItem | null = null;
-  selectedStation: Workstation | null = null;
-  selectedSpecialist: Specialist | null = null;
-  currentUserName: string = 'Cliente VIP';
-  currentUserInitials: string = 'VIP';
+  /** Nombre de pila del usuario para el saludo. Se rellena en ngOnInit desde localStorage. */
+  userName = '';
 
-  services: ServiceItem[] = [
-    {
-      id: 'b1',
-      name: 'Corte Signature Velvet',
-      category: 'barberia',
-      categoryLabel: 'Barbería de Autor',
-      description: 'Corte personalizado con tijera y máquina, lavado con shampoo de carbón activo y peinado final con pomada mate.',
-      duration: 45,
-      price: 45000,
-      badge: 'Más Popular',
-      iconName: 'cut-outline',
-      includes: ['Lavado capilar premium', 'Asesoría de visagismo', 'Peinado final']
-    },
-    {
-      id: 'b2',
-      name: 'Perfilado de Barba & Toalla Caliente',
-      category: 'barberia',
-      categoryLabel: 'Barbería de Autor',
-      description: 'Ritual tradicional con doble toalla al vapor, aceites esenciales de cedro, navaja clásica y bálsamo hidratante.',
-      duration: 35,
-      price: 38000,
-      badge: 'Ritual Exclusivo',
-      iconName: 'sparkles-outline',
-      includes: ['Toalla caliente aromática', 'Afeitado navaja al filo', 'Masaje facial']
-    },
-    {
-      id: 'b3',
-      name: 'Combo Imperial (Corte + Barba)',
-      category: 'barberia',
-      categoryLabel: 'Barbería de Autor',
-      description: 'La experiencia completa de Velvet & Blade: Corte de autor + ritual completo de barba con masaje relajante.',
-      duration: 75,
-      price: 75000,
-      badge: 'Mejor Valor',
-      iconName: 'star',
-      includes: ['Corte completo', 'Barba con toalla vapor', 'Tratamiento capilar express']
-    },
-    {
-      id: 'b4',
-      name: 'Ritual Facial Detox & Black Mask',
-      category: 'barberia',
-      categoryLabel: 'Barbería de Autor',
-      description: 'Limpieza profunda de poros, exfoliación con micro-gránulos de café, mascarilla purificante y tónico refrescante.',
-      duration: 40,
-      price: 52000,
-      badge: 'Cuidado Facial',
-      iconName: 'sparkles-outline',
-      includes: ['Vapor de ozono', 'Extracción suave', 'Hidratación con ácido hialurónico']
-    },
+  /** Categoría actualmente activa en el selector superior. Arranca en "barberia". */
+  activeCategory: Category = 'barberia';
 
+  /** Servicio elegido por el usuario. `null` = paso 1 aún sin completar. */
+  selectedService: Service | null = null;
+
+  /** Estación elegida. `null` = paso 2 aún sin completar. Se resetea al cambiar de servicio. */
+  selectedStation: Station | null = null;
+
+  // ---------------------------------------------------------------------------
+  //  DATOS "DE NEGOCIO"  (hardcodeados hoy; futuros candidatos a venir de API)
+  // ---------------------------------------------------------------------------
+
+  /** Traducción Category → etiqueta visible. Evita repetir strings en el template. */
+  readonly categoryLabels: Record<Category, string> = {
+    barberia: 'Barbería de Autor',
+    unas: 'Spa de Uñas'
+  };
+
+  /**
+   * Catálogo completo de servicios (ambas categorías).
+   * El template nunca itera este arreglo directo: usa el getter `filteredServices`,
+   * que aplica el filtro por `activeCategory`.
+   */
+  readonly services: Service[] = [
     {
-      id: 'u1',
-      name: 'Manicura Rusa Express',
-      category: 'unas',
-      categoryLabel: 'Spa de Uñas',
-      description: 'Limpieza milimétrica de cutícula con torno diamantado, nivelación de lámina ungueal y acabado ultra limpio.',
-      duration: 50,
-      price: 50000,
-      badge: 'Top Solicitado',
-      iconName: 'color-palette-outline',
-      includes: ['Técnica con torno ruso', 'Exfoliación de manos', 'Aceite hidratante de argán']
+      id: 'corte-precision',
+      name: 'Corte de Precisión',
+      description: 'Corte de autor personalizado con acabado a navaja y styling final.',
+      durationMin: 45,
+      price: '$45.000',
+      category: 'barberia',
+      icon: 'cut-outline'
     },
     {
-      id: 'u2',
-      name: 'Esmaltado Semipermanente Gel',
-      category: 'unas',
-      categoryLabel: 'Spa de Uñas',
-      description: 'Manicura completa con esmaltado en gel curado con lámpara LED UV. Brillo impecable por más de 21 días.',
-      duration: 60,
-      price: 65000,
-      badge: 'Larga Duración',
-      iconName: 'sparkles-outline',
-      includes: ['Preparación rusa', 'Gama de +120 tonos', 'Capa protectora Ultra Gloss']
+      id: 'perfilado-barba',
+      name: 'Perfilado de Barba',
+      description: 'Diseño de barba, alineado con toalla caliente y aceites nutritivos.',
+      durationMin: 30,
+      price: '$30.000',
+      category: 'barberia',
+      icon: 'sparkles-outline'
     },
     {
-      id: 'u3',
-      name: 'Pedicura Spa Deluxe',
-      category: 'unas',
-      categoryLabel: 'Spa de Uñas',
-      description: 'Tina de hidromasaje con sales marinas aromáticas, exfoliación, remoción de callosidades, mascarilla térmica y esmaltado.',
-      duration: 70,
-      price: 72000,
-      badge: 'Relax Total',
-      iconName: 'sparkles-outline',
-      includes: ['Hidromasaje con sales', 'Masaje reflexológico', 'Exfoliación e hidratación']
+      id: 'ritual-toalla',
+      name: 'Ritual de Toalla Caliente',
+      description: 'Afeitado clásico completo con vapor, toalla caliente y masaje facial.',
+      durationMin: 40,
+      price: '$38.000',
+      category: 'barberia',
+      icon: 'flame-outline'
     },
     {
-      id: 'u4',
-      name: 'Esculpido en Polygel Velvet',
+      id: 'tratamiento-facial',
+      name: 'Tratamiento Facial',
+      description: 'Limpieza profunda, exfoliación e hidratación para piel de hombre.',
+      durationMin: 50,
+      price: '$55.000',
+      category: 'barberia',
+      icon: 'happy-outline'
+    },
+    {
+      id: 'manicura-rusa',
+      name: 'Manicura Rusa',
+      description: 'Trabajo de cutícula en seco con torno y esmaltado de larga duración.',
+      durationMin: 60,
+      price: '$50.000',
       category: 'unas',
-      categoryLabel: 'Spa de Uñas',
-      description: 'Extensión y esculpido de uñas con técnica híbrida polygel ultra ligera y resistente con diseño a elección.',
-      duration: 90,
-      price: 110000,
-      badge: 'Alta Gama',
-      iconName: 'star',
-      includes: ['Esculpido a medida', 'Esmaltado en gel incluido', 'Nail Art básico']
+      icon: 'hand-left-outline'
+    },
+    {
+      id: 'pedicura-spa',
+      name: 'Pedicura Spa',
+      description: 'Inmersión aromática, exfoliación, masaje y esmaltado profesional.',
+      durationMin: 70,
+      price: '$60.000',
+      category: 'unas',
+      icon: 'footsteps-outline'
+    },
+    {
+      id: 'esmaltado-permanente',
+      name: 'Esmaltado Permanente',
+      description: 'Aplicación de esmalte semipermanente con secado LED y brillo espejo.',
+      durationMin: 45,
+      price: '$40.000',
+      category: 'unas',
+      icon: 'brush-outline'
     }
   ];
 
-  workstations: Workstation[] = [
+  /**
+   * Estaciones y sus profesionales.
+   * Regla de emparejamiento: una estación aparece para un servicio solo si
+   * comparten `category`. Las "ocupado" se muestran pero quedan deshabilitadas.
+   */
+  readonly stations: Station[] = [
     {
-      id: 'st1',
-      name: 'Sillón Master Barber 01',
-      type: 'barberia',
-      number: 1,
+      id: 'sillon-1',
+      name: 'Sillón 1',
+      professional: 'Mateo Rivas',
+      initials: 'MR',
+      role: 'Barbero de Autor',
+      category: 'barberia',
       status: 'disponible',
-      description: 'Sillón reclinable hidráulico de cuero capitoneado con espejo iluminado LED.'
+      rating: 4.9
     },
     {
-      id: 'st2',
-      name: 'Sillón Clásico Imperial 02',
-      type: 'barberia',
-      number: 2,
+      id: 'sillon-2',
+      name: 'Sillón 2',
+      professional: 'Julián Ossa',
+      initials: 'JO',
+      role: 'Barber Senior',
+      category: 'barberia',
       status: 'disponible',
-      description: 'Estación con vaporizador de ozono y toallero térmico dedicado.'
+      rating: 4.8
     },
     {
-      id: 'st3',
-      name: 'Sillón VIP Signature 03',
-      type: 'barberia',
-      number: 3,
+      id: 'sillon-3',
+      name: 'Sillón 3',
+      professional: 'Andrés Kem',
+      initials: 'AK',
+      role: 'Especialista en Barba',
+      category: 'barberia',
+      status: 'ocupado',
+      rating: 4.7
+    },
+    {
+      id: 'mesa-1',
+      name: 'Mesa 1',
+      professional: 'Valentina Ruiz',
+      initials: 'VR',
+      role: 'Nail Artist Master',
+      category: 'unas',
       status: 'disponible',
-      description: 'Zona reservada privada con minibar de cortesía y aislamiento acústico.'
+      rating: 5.0
     },
     {
-      id: 'st4',
-      name: 'Mesa Nail Rose Gold 01',
-      type: 'unas',
-      number: 1,
+      id: 'mesa-2',
+      name: 'Mesa 2',
+      professional: 'Camila Soto',
+      initials: 'CS',
+      role: 'Manicurista Rusa',
+      category: 'unas',
+      status: 'ocupado',
+      rating: 4.8
+    },
+    {
+      id: 'mesa-3',
+      name: 'Mesa 3',
+      professional: 'Daniela Franco',
+      initials: 'DF',
+      role: 'Pedicura Spa',
+      category: 'unas',
       status: 'disponible',
-      description: 'Mesa ergonómica con extractor de polvo integrado y lámpara SunUV pro.'
-    },
-    {
-      id: 'st5',
-      name: 'Mesa Velvet Diamond 02',
-      type: 'unas',
-      number: 2,
-      status: 'disponible',
-      description: 'Estación con apoyabrazos acolchado de terciopelo y torno SilentPro.'
-    },
-    {
-      id: 'st6',
-      name: 'Sillón Pedicura Spa Relax 03',
-      type: 'unas',
-      number: 3,
-      status: 'disponible',
-      description: 'Sillón de masaje Shiatsu con tina de hidromasaje y cromoterapia.'
-    }
-  ];
-
-  specialists: Specialist[] = [
-    {
-      id: 'sp1',
-      name: 'Carlos "Blade" Mendoza',
-      role: 'Master Barber & Visagista',
-      type: 'barberia',
-      rating: 4.95,
-      reviewsCount: 142,
-      available: true,
-      avatarColor: 'linear-gradient(135deg, #C9184A 0%, #800F2F 100%)'
-    },
-    {
-      id: 'sp2',
-      name: 'Mateo Restrepo',
-      role: 'Especialista en Barbas y Ritual',
-      type: 'barberia',
-      rating: 4.88,
-      reviewsCount: 98,
-      available: true,
-      avatarColor: 'linear-gradient(135deg, #701A75 0%, #3B1235 100%)'
-    },
-    {
-      id: 'sp3',
-      name: 'Valentina Morales',
-      role: 'Master Nail Artist (Técnica Rusa)',
-      type: 'unas',
-      rating: 4.98,
-      reviewsCount: 185,
-      available: true,
-      avatarColor: 'linear-gradient(135deg, #C9184A 0%, #D4AF37 100%)'
-    },
-    {
-      id: 'sp4',
-      name: 'Camila Sandoval',
-      role: 'Especialista en Polygel & Spa',
-      type: 'unas',
-      rating: 4.92,
-      reviewsCount: 120,
-      available: true,
-      avatarColor: 'linear-gradient(135deg, #701A75 0%, #C9184A 100%)'
+      rating: 4.9
     }
   ];
 
   constructor(private readonly router: Router) {
+    // Registro global de los iconos usados en el template. `addIcons` recibe un
+    // objeto {claveCamelCase: valor}; en el HTML se referencian en kebab-case
+    // (p. ej. `cutOutline` aquí ↔ name="cut-outline" en el template).
     addIcons({
       cutOutline,
       colorPaletteOutline,
-      timeOutline,
-      cashOutline,
       sparklesOutline,
-      star,
-      personOutline,
-      checkmarkCircle,
+      happyOutline,
+      flameOutline,
+      handLeftOutline,
+      footstepsOutline,
+      brushOutline,
+      timeOutline,
       arrowForwardOutline,
-      informationCircleOutline,
-      chevronForwardOutline,
-      pinOutline,
-      shieldCheckmarkOutline,
-      storefrontOutline,
-      searchOutline
+      checkmarkCircle,
+      checkmarkOutline,
+      personOutline,
+      star,
+      calendarOutline
     });
   }
 
-  ngOnInit() {
-    this.loadCurrentUser();
-    this.setDefaultSelections();
-  }
-
-  loadCurrentUser() {
+  /**
+   * Ciclo de vida: se ejecuta una vez al montar la pantalla.
+   * Aquí ocurre TODA la LECTURA de datos externos (localStorage):
+   *   1. `vb_current_user`     → nombre para el saludo.
+   *   2. `vb_selected_service` → si existe, rehidrata la selección previa
+   *      (caso: el usuario fue al Punto D y volvió atrás).
+   * Ambos bloques van en try/catch porque el JSON puede estar corrupto o
+   * localStorage puede no estar disponible (modo incógnito, etc.).
+   */
+  ngOnInit(): void {
+    // --- 1. Nombre del usuario para el saludo -------------------------------
     try {
-      const stored = localStorage.getItem('vb_current_user');
-      if (stored) {
-        const user = JSON.parse(stored);
-        if (user.name) {
-          this.currentUserName = user.name;
-          const parts = user.name.trim().split(' ');
-          this.currentUserInitials = parts.length > 1
-            ? (parts[0][0] + parts[1][0]).toUpperCase()
-            : user.name.slice(0, 2).toUpperCase();
+      const raw = localStorage.getItem('vb_current_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Solo el primer token del nombre completo ("Ana María López" → "Ana").
+        this.userName = (parsed?.name || '').split(' ')[0] || '';
+      }
+    } catch { /* localStorage no disponible o JSON inválido → sin saludo */ }
+
+    // --- 2. Restaurar una selección previa si el usuario regresa -----------
+    try {
+      const raw = localStorage.getItem('vb_selected_service');
+      if (raw) {
+        const saved = JSON.parse(raw);
+        // Se busca por id (no se confía en el objeto guardado: puede estar
+        // desactualizado respecto al catálogo actual).
+        const svc = this.services.find(s => s.id === saved?.serviceId);
+        const st = this.stations.find(x => x.id === saved?.stationId);
+        if (svc) {
+          this.selectedService = svc;
+          this.activeCategory = svc.category; // deja la vista en la categoría correcta
+        }
+        // La estación solo se rehidrata si SIGUE disponible (pudo ocuparse mientras tanto).
+        if (st && st.status === 'disponible') {
+          this.selectedStation = st;
         }
       }
-    } catch { }
+    } catch { /* sin selección previa válida → se empieza desde cero */ }
   }
 
-  setDefaultSelections() {
-    const firstService = this.filteredServices[0];
-    if (firstService) {
-      this.selectedService = firstService;
-    }
-    const firstStation = this.filteredStations[0];
-    if (firstStation) {
-      this.selectedStation = firstStation;
-    }
-    const firstSpecialist = this.filteredSpecialists[0];
-    if (firstSpecialist) {
-      this.selectedSpecialist = firstSpecialist;
-    }
+  // ---------------------------------------------------------------------------
+  //  GETTERS DERIVADOS  (el template los usa; se recalculan en cada CD)
+  // ---------------------------------------------------------------------------
+
+  /** Servicios visibles = catálogo filtrado por la categoría activa. */
+  get filteredServices(): Service[] {
+    return this.services.filter(s => s.category === this.activeCategory);
   }
 
-  async triggerHaptic() {
+  /**
+   * Estaciones visibles. Se emparejan con la categoría del SERVICIO elegido;
+   * si aún no hay servicio, se usa la categoría activa como respaldo.
+   */
+  get filteredStations(): Station[] {
+    const cat = this.selectedService?.category ?? this.activeCategory;
+    return this.stations.filter(s => s.category === cat);
+  }
+
+  /** Nº de estaciones libres dentro de las visibles (se muestra en el encabezado del bloque). */
+  get availableStationsCount(): number {
+    return this.filteredStations.filter(s => s.status === 'disponible').length;
+  }
+
+  // ---------------------------------------------------------------------------
+  //  ACCIONES DEL USUARIO  (handlers del template)
+  // ---------------------------------------------------------------------------
+
+  /** Traduce una Category a su etiqueta legible. Usado en los chips del template. */
+  categoryLabel(cat: Category): string {
+    return this.categoryLabels[cat];
+  }
+
+  /**
+   * Dispara la vibración sutil. Aislada en su propio método porque se llama
+   * desde casi todos los handlers. Nunca propaga errores (navegador sin plugin).
+   */
+  async triggerHaptic(): Promise<void> {
     try {
       await Haptics.impact({ style: ImpactStyle.Light });
-    } catch {
+    } catch { /* no-op en web */ }
+  }
+
+  /**
+   * Cambia la categoría activa (selector superior).
+   * Ojo: NO borra el servicio ya elegido a propósito — el usuario puede estar
+   * solo "ojeando" la otra categoría. El servicio se limpia únicamente cuando
+   * elige otro servicio (ver `selectService`).
+   */
+  setCategory(cat: Category): void {
+    if (this.activeCategory === cat) {
+      return; // sin cambios → no vibrar ni re-renderizar
     }
-  }
-
-  setCategory(cat: 'barberia' | 'unas') {
-    if (this.activeCategory !== cat) {
-      this.activeCategory = cat;
-      this.triggerHaptic();
-      this.setDefaultSelections();
-    }
-  }
-
-  get filteredServices(): ServiceItem[] {
-    return this.services.filter(s => {
-      const matchesCategory = s.category === this.activeCategory;
-      const matchesSearch = this.searchQuery
-        ? s.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          s.description.toLowerCase().includes(this.searchQuery.toLowerCase())
-        : true;
-      return matchesCategory && matchesSearch;
-    });
-  }
-
-  get filteredStations(): Workstation[] {
-    return this.workstations.filter(st => st.type === this.activeCategory);
-  }
-
-  get filteredSpecialists(): Specialist[] {
-    return this.specialists.filter(sp => sp.type === this.activeCategory);
-  }
-
-  selectService(service: ServiceItem) {
-    this.selectedService = service;
+    this.activeCategory = cat;
     this.triggerHaptic();
   }
 
-  selectStation(station: Workstation) {
+  /**
+   * Registra el servicio elegido (paso 1 → hecho).
+   * Efecto colateral importante: RESETEA `selectedStation`, porque la estación
+   * anterior podría pertenecer a otra categoría / no ser válida para el nuevo
+   * servicio. Además sincroniza la categoría activa con la del servicio.
+   */
+  selectService(service: Service): void {
+    if (this.selectedService?.id === service.id) {
+      return; // ya estaba elegido
+    }
+    this.selectedService = service;
+    this.selectedStation = null;            // fuerza a re-elegir estación
+    this.activeCategory = service.category; // mantiene la vista coherente
+    this.triggerHaptic();
+  }
+
+  /**
+   * Registra la estación elegida (paso 2 → hecho).
+   * Ignora el clic si la estación está ocupada (el botón ya está `disabled`
+   * en el template, esto es una segunda barrera) o si ya estaba seleccionada.
+   */
+  selectStation(station: Station): void {
+    if (station.status === 'ocupado' || this.selectedStation?.id === station.id) {
+      return;
+    }
     this.selectedStation = station;
     this.triggerHaptic();
   }
 
-  selectSpecialist(specialist: Specialist) {
-    this.selectedSpecialist = specialist;
+  /**
+   * Paso 3: confirmar y avanzar al Punto D.
+   *
+   * Aquí ocurre la ÚNICA ESCRITURA de datos de esta pantalla:
+   * se serializa la selección en `localStorage["vb_selected_service"]` con la
+   * forma mínima que el Punto D necesita (ids + datos ya "aplanados" para no
+   * obligar al Punto D a volver a buscar en el catálogo).
+   *
+   * Guarda de seguridad: si falta servicio o estación, no hace nada (el botón
+   * ya está deshabilitado en ese estado, pero se valida igual).
+   */
+  continue(): void {
+    if (!this.selectedService || !this.selectedStation) {
+      return;
+    }
     this.triggerHaptic();
-  }
+    try {
+      localStorage.setItem('vb_selected_service', JSON.stringify({
+        // --- claves para volver a resolver contra el catálogo si hiciera falta ---
+        serviceId: this.selectedService.id,
+        stationId: this.selectedStation.id,
+        // --- datos ya listos para mostrar/usar en el Punto D ---
+        serviceName: this.selectedService.name,
+        durationMin: this.selectedService.durationMin, // dimensiona el bloque de agenda
+        price: this.selectedService.price,
+        category: this.selectedService.category,
+        stationName: this.selectedStation.name,
+        professional: this.selectedStation.professional
+      }));
+    } catch { /* si no se pudo persistir, igualmente se navega */ }
 
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0
-    }).format(price);
-  }
-
-  proceedToScheduling() {
-    this.triggerHaptic();
-    console.log('Proceeding to Schedule with:', {
-      service: this.selectedService,
-      station: this.selectedStation,
-      specialist: this.selectedSpecialist
-    });
-    alert(`¡Selección confirmada!\n\nServicio: ${this.selectedService?.name}\nEstación: ${this.selectedStation?.name}\nEspecialista: ${this.selectedSpecialist?.name}\nTotal: ${this.formatPrice(this.selectedService?.price || 0)}\n\nListo para continuar al Punto D: Revisar Horario y Disponibilidad.`);
-  }
-
-  goToLogin() {
-    this.triggerHaptic();
-    this.router.navigateByUrl('/login');
+    // Navegación al Punto D (Revisar Horario y Disponibilidad).
+    // HOY /schedule es un placeholder en app.routes.ts que redirige de vuelta
+    // a esta pantalla; al integrar la rama desarrollo-cristian apuntará a la
+    // pantalla real de horario.
+    this.router.navigateByUrl('/schedule');
   }
 }
-
