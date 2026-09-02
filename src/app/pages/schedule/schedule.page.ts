@@ -67,6 +67,7 @@ import {
 // Haptics: vibración sutil en cada interacción. En navegador el plugin lanza
 // excepción → TODAS las llamadas van en try/catch (mismo patrón que el resto).
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Toast } from '@capacitor/toast';
 
 /** Estado operativo de un bloque de horario. */
 type SlotState = 'available' | 'occupied' | 'reserved';
@@ -305,6 +306,27 @@ export class SchedulePage implements OnInit {
     } catch { /* no-op en web */ }
   }
 
+  /** Vibración más intensa para confirmar la reserva. */
+  async triggerConfirmationHaptic(): Promise<void> {
+    try {
+      await Haptics.notification({ type: 'success' });
+    } catch { /* no-op en web */ }
+  }
+
+  /**
+   * Muestra un toast con el texto indicado, usando la API de Capacitor.
+   * Requiere: Toast.show({ text, duration?, position? }).
+   */
+  async showToast(
+    text: string,
+    duration: 'short' | 'long' = 'short',
+    position: 'top' | 'center' | 'bottom' = 'bottom'
+  ): Promise<void> {
+    try {
+      await Toast.show({ text, duration, position });
+    } catch { /* no-op en web */ }
+  }
+
   /**
    * Cambia el día activo. Reinicia el bloque elegido (los slots de otro día
    * no son los mismos) y limpia el mensaje de confirmación.
@@ -344,11 +366,13 @@ export class SchedulePage implements OnInit {
    * Guarda de seguridad: si falta el bloque de horario o el resumen del
    * Punto C, no hace nada (el botón ya está deshabilitado en ese estado).
    */
-  confirmSelection(): void {
+  async confirmSelection(): Promise<void> {
     if (!this.selectedSlot || !this.selection) {
       return;
     }
-    this.triggerHaptic();
+
+    await this.triggerConfirmationHaptic();
+    await this.showToast('Reserva confirmada', 'long', 'bottom');
 
     const day = this.getSelectedDay();
     this.confirmedAppointment =
