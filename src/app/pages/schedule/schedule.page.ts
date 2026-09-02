@@ -67,7 +67,8 @@ import {
 } from 'ionicons/icons';
 // Haptics: vibración sutil en cada interacción. En navegador el plugin lanza
 // excepción → TODAS las llamadas van en try/catch (mismo patrón que el resto).
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { Toast } from '@capacitor/toast';
 
 /** Estado operativo de un bloque de horario. */
 type SlotState = 'available' | 'occupied' | 'reserved';
@@ -309,7 +310,7 @@ export class SchedulePage implements OnInit {
   /** Vibración más intensa para confirmar la reserva. */
   async triggerConfirmationHaptic(): Promise<void> {
     try {
-      await Haptics.notification({ type: 'success' });
+      await Haptics.notification({ type: NotificationType.Success });
     } catch { /* no-op en web */ }
   }
 
