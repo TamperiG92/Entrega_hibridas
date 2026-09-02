@@ -1,6 +1,6 @@
 # Progreso — rama `desarrollo-oscar`
 
-Fecha: 2026-08-30
+Fecha: 2026-08-30 · Última actualización: 2026-09-02
 
 ## Bitácora
 
@@ -37,6 +37,33 @@ Fecha: 2026-08-30
     reales (se eliminaron los placeholders).
   - Specs nuevas para D y E. `npm run build` y `npm test` (14 pruebas) en verde.
   - `FLUJO-DE-DATOS.md` actualizado con `vb_appointments` y el recorrido D → E.
+- **2026-09-01/02 (sesión 4):**
+  - **Merge completo de `desarrollo-cristian`** sobre `desarrollo-oscar`
+    (fast-forward, sin conflictos). Trae la **plataforma nativa Android**
+    (`android/`), `appId` real (`com.ucompensar.velvetblade`) y las
+    dependencias de Capacitor al día.
+  - **Arreglados dos bugs heredados** de esa rama que rompían el build:
+    marcadores de conflicto de Git sin resolver, commiteados tal cual, en
+    `tsconfig.spec.json` y `.vscode/settings.json`; y 4 archivos huérfanos de
+    scaffolding NgModule (`app.module.ts`, `app-routing.module.ts`,
+    `home/home.module.ts`, `home/home-routing.module.ts`) nunca conectados al
+    bootstrap real — eliminados.
+  - **Haptics** verificado como plugin nativo real: `npx cap sync android`
+    confirma `@capacitor/haptics` registrado en el proyecto Android (el
+    código que dispara la vibración ya existía desde la sesión 3).
+  - **Toast nativo implementado** (alertas flotantes del SO):
+    - Punto D (`confirmSelection()`): toast al confirmar una cita.
+    - Punto E: **nueva** acción "Cancelar" en cada cita activa
+      (`cancelAppointment()`) — marca la cita `Cancelado` en
+      `vb_appointments`, dispara vibración + toast, y la saca de "Activas".
+    - Instalado y registrado `@ionic/pwa-elements` en `main.ts` para que el
+      toast también se vea en navegador (`ng serve`), no solo en el APK.
+  - Verificado en navegador real (login → agendar → toast → cancelar →
+    toast), sin errores de consola. `npm test` (16 pruebas) y `npm run
+    build` en verde.
+  - Commit `0c47bbc` y push a `origin/desarrollo-oscar`. Repo sin GitHub
+    Actions configurado (ningún branch tiene `.github/workflows`), el push
+    no dispara CI propio.
 
 ## Contexto del proyecto
 
@@ -125,17 +152,17 @@ npm start                       # ng serve  ->  http://localhost:4200/
 ```
 Flujo completo: `http://localhost:4200/` → Login como **cliente** (cuenta demo
 `cliente.vip@velvetblade.com` / `Velvet2026*`) → Selección de Servicio (C) →
-Continuar a Horario (D) → Confirmar cita → Agendados (E).
+Continuar a Horario (D) → Confirmar cita (toast) → Agendados (E) → Cancelar (toast).
+
+Para el build nativo Android: `npx cap sync android` ya deja el proyecto en
+`android/` al día con Haptics y Toast registrados.
 
 ## Próximos pasos
 
-1. **Verificar visualmente** el flujo completo A → B → C → D → E con `npm start`.
-2. Pulido visual de D y E para igualar el sistema de diseño del Punto C.
-3. Configurar Capacitor: `npx cap init` / `npx cap add android` y plugins
-   Haptics + Toast según el brief.
-4. Abrir PR de `desarrollo-oscar` hacia `main`.
-5. Pedir a Cristian que actualice su rama a standalone desde su equipo (para no
-   arrastrar la divergencia NgModule en futuras integraciones).
+1. Pulido visual de D y E para igualar el sistema de diseño del Punto C.
+2. Abrir PR de `desarrollo-oscar` hacia `main`.
+3. El Punto D no marca como "ocupado" el slot recién reservado (queda para
+   cuando exista backend real de disponibilidad).
 
 ## Comandos útiles
 
