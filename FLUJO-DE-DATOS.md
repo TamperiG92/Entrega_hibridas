@@ -143,14 +143,26 @@ Forma exacta que hace `unshift` `schedule.page.ts` → `confirmSelection()`
 }
 ```
 
-- **Escribe:** solo `schedule.page.ts` → `confirmSelection()`, al pulsar
-  "Confirmar cita". Hace `push`/`unshift` sobre el arreglo existente (append).
+- **Escribe:**
+  - `schedule.page.ts` → `confirmSelection()`, al pulsar "Confirmar cita".
+    Hace `push`/`unshift` sobre el arreglo existente (append).
+  - `appointments.page.ts` → `cancelAppointment()`, al pulsar "Cancelar" en
+    una cita activa. Busca la entrada por `id` dentro del arreglo y le pone
+    `status: 'Cancelado'` / `accent: 'cancelled'` (no la borra, queda como
+    registro).
 - **Lee:** `appointments.page.ts` → `ngOnInit()`: rellena la lista **"Activas"**.
   Filtra entradas sin `service`/`time` por robustez. Si el arreglo está vacío o
   no existe, la vista muestra el estado "Aún no tienes citas activas".
-- **No se borra ni se edita en ningún sitio todavía** (no hay cancelar/completar).
+- **Ambas escrituras disparan feedback nativo:** vibración (`Haptics`) +
+  alerta flotante del SO (`Toast.show`, `@capacitor/toast`) con el mensaje de
+  confirmación o cancelación. En navegador, el toast se renderiza vía
+  `<pwa-toast>` (`@ionic/pwa-elements`, registrado en `main.ts`); en el APK
+  usa el Toast nativo de Android.
+- No hay edición de otros campos ni flujo de "completar" (pertenecería al
+  lado del especialista, fuera de este alcance).
 - El **"Historial"** del Punto E son datos **hardcodeados** de demo; no salen de
-  esta clave.
+  esta clave (la cita recién cancelada desaparece de "Activas" pero no migra
+  al Historial de demo).
 
 ---
 
@@ -234,11 +246,14 @@ Forma exacta que hace `unshift` `schedule.page.ts` → `confirmSelection()`
   están **hardcodeados** en sus componentes. Con API → servicios Angular
   inyectables (`ServiceCatalogService`, `AvailabilityService`, `AppointmentsService`).
 - `password` se guarda en **texto plano** en `vb_users` (solo válido para demo).
-- No hay **logout** → `vb_current_user` nunca se limpia.
+- **Logout** (`appointments.page.ts` → `logout()`) limpia `vb_current_user`,
+  `vb_selected_service` y `vb_appointments` y vuelve a `/login`.
 - `vb_selected_service` es efímero por diseño; con backend sería un
   *draft de reserva* en servidor, no en `localStorage`.
-- `vb_appointments` solo crece: no hay cancelar / completar / mover cita, y el
+- `vb_appointments` ya soporta **cancelar** (Punto E); sigue sin **completar /
+  mover cita** (pertenece al flujo de especialista, fuera de alcance), y el
   Punto D no marca como "ocupado" el slot que se acaba de reservar.
-- Los Puntos D y E se **portaron desde `desarrollo-cristian`** y se adaptaron a
-  standalone. Esa rama sigue en arquitectura NgModule y desactualizada respecto
-  a `main`; lo ideal es que su autor la actualice a standalone desde su equipo.
+- Los Puntos D y E se portaron originalmente desde `desarrollo-cristian`. Esa
+  rama luego se integró completa a `desarrollo-oscar` (merge), trayendo la
+  plataforma nativa Android (`android/`) y las últimas dependencias de
+  Capacitor; ambas ramas comparten hoy el mismo código standalone.

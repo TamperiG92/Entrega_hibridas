@@ -45,9 +45,9 @@ describe('SchedulePage', () => {
     expect(component.selection?.serviceName).toBe('Corte de Precisión');
   });
 
-  it('confirmar cita añade un registro a vb_appointments', () => {
+  it('confirmar cita añade un registro a vb_appointments', async () => {
     component.selectedSlot = { time: '11:15', state: 'available' };
-    component.confirmSelection();
+    await component.confirmSelection();
 
     const stored = JSON.parse(localStorage.getItem('vb_appointments') ?? '[]');
     expect(stored.length).toBe(1);

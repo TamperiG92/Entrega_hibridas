@@ -48,4 +48,29 @@ describe('AppointmentsPage', () => {
     expect(component.activeAppointments.length).toBe(1);
     expect(component.activeAppointments[0].service).toBe('Corte de Precisión');
   });
+
+  it('cancelar una cita la saca de "Activas" y la marca Cancelado en localStorage', async () => {
+    localStorage.setItem(
+      'vb_appointments',
+      JSON.stringify([
+        {
+          id: 1,
+          service: 'Corte de Precisión',
+          professional: 'Mateo Rivas · Barbería de Autor',
+          date: 'Hoy 29',
+          time: '11:15',
+          duration: '45 min',
+          status: 'Confirmado',
+          accent: 'confirmed',
+        },
+      ])
+    );
+    build();
+
+    await component.cancelAppointment(component.activeAppointments[0]);
+
+    expect(component.activeAppointments.length).toBe(0);
+    const stored = JSON.parse(localStorage.getItem('vb_appointments') ?? '[]');
+    expect(stored[0].status).toBe('Cancelado');
+  });
 });

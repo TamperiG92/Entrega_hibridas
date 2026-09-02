@@ -60,6 +60,16 @@
               <p class="appointment-price" *ngIf="appointment.price">
                 {{ appointment.price }}
               </p>
+
+              <ion-button
+                type="button"
+                fill="clear"
+                color="danger"
+                class="cancel-button"
+                (click)="cancelAppointment(appointment)">
+                <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+                Cancelar
+              </ion-button>
             </ion-card-content>
           </ion-card>
         </div>

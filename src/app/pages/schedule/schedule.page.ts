@@ -13,7 +13,8 @@
  *    2. Elige una FECHA de los próximos días.
  *    3. Elige un BLOQUE de horario disponible.
  *    4. Pulsa "Confirmar cita" → se crea la reserva en
- *       localStorage["vb_appointments"] y se navega al Punto E.
+ *       localStorage["vb_appointments"], se muestra un Toast nativo
+ *       confirmándolo y se navega al Punto E.
  *
  *  Origen y destino de los datos (ver también FLUJO-DE-DATOS.md):
  *
@@ -67,6 +68,9 @@ import {
 // Haptics: vibración sutil en cada interacción. En navegador el plugin lanza
 // excepción → TODAS las llamadas van en try/catch (mismo patrón que el resto).
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+// Toast: alerta flotante nativa del SO al confirmar la cita. Sí tiene
+// implementación web (a diferencia de Haptics), pero igual va en try/catch.
+import { Toast } from '@capacitor/toast';
 
 /** Estado operativo de un bloque de horario. */
 type SlotState = 'available' | 'occupied' | 'reserved';
@@ -344,15 +348,16 @@ export class SchedulePage implements OnInit {
    * Guarda de seguridad: si falta el bloque de horario o el resumen del
    * Punto C, no hace nada (el botón ya está deshabilitado en ese estado).
    */
-  confirmSelection(): void {
+  async confirmSelection(): Promise<void> {
     if (!this.selectedSlot || !this.selection) {
       return;
     }
     this.triggerHaptic();
 
     const day = this.getSelectedDay();
-    this.confirmedAppointment =
+    const confirmationMessage =
       `Cita confirmada para ${day.label} ${day.dateNumber} a las ${this.selectedSlot.time}`;
+    this.confirmedAppointment = confirmationMessage;
 
     try {
       const raw = localStorage.getItem('vb_appointments');
@@ -375,6 +380,14 @@ export class SchedulePage implements OnInit {
       });
       localStorage.setItem('vb_appointments', JSON.stringify(list));
     } catch { /* si no se pudo persistir, igualmente se navega */ }
+
+    try {
+      await Toast.show({
+        text: confirmationMessage,
+        duration: 'short',
+        position: 'bottom'
+      });
+    } catch { /* no-op si el toast falla */ }
 
     // Navegación al Punto E (Servicios Agendados e Historial).
     this.router.navigateByUrl('/appointments');

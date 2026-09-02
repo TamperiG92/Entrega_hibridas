@@ -19,8 +19,14 @@ import { addIcons } from 'ionicons';
 import {
   addOutline,
   calendarOutline,
+  closeCircleOutline,
   hourglassOutline,
   timeOutline, logOutOutline } from 'ionicons/icons';
+// Haptics + Toast: misma pareja de feedback nativo que usa el Punto D al
+// confirmar una cita — aquí se dispara al cancelarla. Ambos van en
+// try/catch: Haptics lanza en navegador, Toast no pero se protege igual.
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Toast } from '@capacitor/toast';
 
 type AppointmentStatus = 'Confirmado' | 'En Atención' | 'Completado' | 'Cancelado';
 
@@ -84,7 +90,7 @@ export class AppointmentsPage implements OnInit {
   ];
 
   constructor(private readonly router: Router) {
-    addIcons({logOutOutline,addOutline,calendarOutline,timeOutline,hourglassOutline});
+    addIcons({logOutOutline,addOutline,calendarOutline,timeOutline,hourglassOutline,closeCircleOutline});
   }
 
   ngOnInit(): void {
@@ -117,6 +123,46 @@ export class AppointmentsPage implements OnInit {
 
   newBooking(): void {
     this.router.navigateByUrl('/service-selection');
+  }
+
+  /** Vibración sutil aislada en su propio método. Nunca propaga errores. */
+  private async triggerHaptic(): Promise<void> {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch { /* no-op en web */ }
+  }
+
+  /**
+   * Cancela una cita activa: la saca de "Activas" y la marca 'Cancelado' en
+   * localStorage["vb_appointments"] (persiste, no se borra del arreglo) para
+   * que quede como registro. Única acción de "modificar el estado" del
+   * cliente hoy — no hay flujo de especialista en este alcance.
+   */
+  async cancelAppointment(appointment: Appointment): Promise<void> {
+    this.triggerHaptic();
+
+    this.activeAppointments = this.activeAppointments.filter(
+      (a) => a.id !== appointment.id
+    );
+
+    try {
+      const raw = localStorage.getItem('vb_appointments');
+      const list: Appointment[] = raw ? JSON.parse(raw) : [];
+      const target = list.find((a) => a?.id === appointment.id);
+      if (target) {
+        target.status = 'Cancelado';
+        target.accent = 'cancelled';
+      }
+      localStorage.setItem('vb_appointments', JSON.stringify(list));
+    } catch { /* si no se pudo persistir, la vista ya se actualizó igual */ }
+
+    try {
+      await Toast.show({
+        text: `Cita de ${appointment.service} cancelada`,
+        duration: 'short',
+        position: 'bottom'
+      });
+    } catch { /* no-op si el toast falla */ }
   }
 
   logout(): void {
